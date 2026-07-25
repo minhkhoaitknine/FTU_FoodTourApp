@@ -23,9 +23,16 @@ async function main() {
   const databaseUrl = process.env.DATABASE_URL ?? "";
   const authSecret = process.env.AUTH_SECRET ?? "";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const isProduction = process.env.NODE_ENV === "production";
 
   checks.push(result("DATABASE_URL", databaseUrl.length > 0, databaseUrl ? maskConnectionString(databaseUrl) : "Missing"));
-  checks.push(result("AUTH_SECRET", authSecret.length >= 32, "Use at least 32 characters for deployment."));
+  checks.push(
+    result(
+      "AUTH_SECRET",
+      isProduction ? authSecret.length >= 32 : authSecret.length > 0,
+      isProduction ? "Use at least 32 characters for deployment." : "Configured for local development."
+    )
+  );
   checks.push(result("NEXT_PUBLIC_APP_URL", appUrl.length > 0, appUrl || "Missing"));
 
   if (authSecret === "change-this-development-secret") {
