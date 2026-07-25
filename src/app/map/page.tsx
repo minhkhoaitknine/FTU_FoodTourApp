@@ -2,6 +2,8 @@ import Link from "next/link";
 import { SmartFoodMapDynamic } from "@/components/map/smart-food-map-dynamic";
 import { listCities, listMapRestaurants } from "@/services/restaurants/restaurant-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function MapPage() {
   const [items, cities] = await Promise.all([listMapRestaurants(80), listCities()]);
 

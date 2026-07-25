@@ -18,11 +18,17 @@ function maskConnectionString(value: string) {
   return value.replace(/:\/\/([^:]+):([^@]+)@/, "://$1:***@");
 }
 
+function normalizeAppUrl(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed.replace(/^\/+/, "")}`;
+}
+
 async function main() {
   const checks: CheckResult[] = [];
   const databaseUrl = process.env.DATABASE_URL ?? "";
   const authSecret = process.env.AUTH_SECRET ?? "";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const appUrl = normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL ?? "");
   const isProduction = process.env.NODE_ENV === "production";
 
   checks.push(result("DATABASE_URL", databaseUrl.length > 0, databaseUrl ? maskConnectionString(databaseUrl) : "Missing"));
@@ -33,7 +39,11 @@ async function main() {
       isProduction ? "Use at least 32 characters for deployment." : "Configured for local development."
     )
   );
-  checks.push(result("NEXT_PUBLIC_APP_URL", appUrl.length > 0, appUrl || "Missing"));
+  try {
+    checks.push(result("NEXT_PUBLIC_APP_URL", appUrl.length > 0 && Boolean(new URL(appUrl)), appUrl || "Missing"));
+  } catch {
+    checks.push(result("NEXT_PUBLIC_APP_URL", false, `${appUrl} is not a valid URL.`));
+  }
 
   if (authSecret === "change-this-development-secret") {
     checks.push(result("AUTH_SECRET production safety", false, "Development secret is still configured.", "warning"));

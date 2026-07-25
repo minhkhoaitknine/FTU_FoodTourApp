@@ -2,6 +2,8 @@ import Link from "next/link";
 import { SoundscapePlayer } from "@/components/soundscapes/soundscape-player";
 import { listSoundscapes } from "@/services/soundscapes/soundscape-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function SoundscapePage() {
   const soundscapes = await listSoundscapes();
 
