@@ -1,0 +1,366 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum PriceRange {
+  BUDGET
+  MODERATE
+  PREMIUM
+}
+
+enum TransportMode {
+  WALKING
+  BICYCLE
+  MOTORBIKE
+  CAR
+  PUBLIC_TRANSIT
+}
+
+enum RestaurantType {
+  STREET_FOOD
+  LOCAL_EATERY
+  RESTAURANT
+  CAFE
+  MARKET_STALL
+  DESSERT_SHOP
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  SNACK
+  DINNER
+  COFFEE
+  NIGHT
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+  FLAGGED
+}
+
+enum TourStatus {
+  DRAFT
+  SAVED
+  COMPLETED
+  ARCHIVED
+}
+
+enum ModerationActionType {
+  PUBLISH_REVIEW
+  HIDE_REVIEW
+  FLAG_REVIEW
+  RESTORE_REVIEW
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  avatarUrl    String?
+  role         UserRole  @default(USER)
+  isLocked     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  preference        UserPreference?
+  reviews           Review[]
+  favorites         Favorite[]
+  foodTours         FoodTour[]
+  moderationActions ModerationAction[] @relation("ModeratorActions")
+
+  @@index([role])
+  @@index([isLocked])
+}
+
+model UserPreference {
+  id                  String        @id @default(cuid())
+  userId              String        @unique
+  spicyLevel          Int           @default(2)
+  vegetarian          Boolean       @default(false)
+  preferredPriceRange PriceRange    @default(MODERATE)
+  preferredTransport  TransportMode @default(MOTORBIKE)
+  cuisines            Json
+  allergies           Json
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model City {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  region    String
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  restaurants Restaurant[]
+  foodTours   FoodTour[]
+  soundscapes Soundscape[]
+}
+
+model Restaurant {
+  id                   String         @id @default(cuid())
+  cityId               String
+  name                 String
+  slug                 String         @unique
+  description          String
+  culturalStory        String
+  eatingTips           String
+  address              String
+  latitude             Float
+  longitude            Float
+  type                 RestaurantType
+  priceRange           PriceRange
+  averageMealMinutes   Int
+  ratingAverage        Float          @default(0)
+  ratingCount          Int            @default(0)
+  minPrice             Int
+  maxPrice             Int
+  isVegetarianFriendly Boolean        @default(false)
+  isSpicy              Boolean        @default(false)
+  isActive             Boolean        @default(true)
+  isDemo               Boolean        @default(true)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  deletedAt            DateTime?
+
+  city           City              @relation(fields: [cityId], references: [id])
+  images         RestaurantImage[]
+  tags           RestaurantTag[]
+  openingHours   OpeningHour[]
+  menuCategories MenuCategory[]
+  reviews        Review[]
+  favorites      Favorite[]
+  tourStops      FoodTourStop[]
+
+  @@index([cityId])
+  @@index([type])
+  @@index([priceRange])
+  @@index([ratingAverage])
+  @@index([latitude, longitude])
+  @@index([isActive, deletedAt])
+}
+
+model RestaurantImage {
+  id           String   @id @default(cuid())
+  restaurantId String
+  url          String
+  alt          String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+}
+
+model RestaurantTag {
+  id           String   @id @default(cuid())
+  restaurantId String
+  name         String
+  createdAt    DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, name])
+  @@index([name])
+}
+
+model OpeningHour {
+  id           String   @id @default(cuid())
+  restaurantId String
+  dayOfWeek    Int
+  openTime     String
+  closeTime    String
+  breakStart   String?
+  breakEnd     String?
+  isClosed     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@index([dayOfWeek])
+}
+
+model MenuCategory {
+  id           String   @id @default(cuid())
+  restaurantId String
+  name         String
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items      MenuItem[]
+
+  @@index([restaurantId])
+}
+
+model MenuItem {
+  id             String   @id @default(cuid())
+  menuCategoryId String
+  name           String
+  description    String
+  price          Int
+  isVegetarian   Boolean  @default(false)
+  isSpicy        Boolean  @default(false)
+  allergens      Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  category MenuCategory @relation(fields: [menuCategoryId], references: [id], onDelete: Cascade)
+
+  @@index([menuCategoryId])
+  @@index([price])
+}
+
+model Review {
+  id               String       @id @default(cuid())
+  userId           String
+  restaurantId     String
+  rating           Int
+  comment          String
+  status           ReviewStatus @default(PUBLISHED)
+  moderationReason String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant        Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  images            ReviewImage[]
+  moderationActions ModerationAction[]
+
+  @@unique([userId, restaurantId])
+  @@index([restaurantId, status])
+  @@index([rating])
+}
+
+model ReviewImage {
+  id        String   @id @default(cuid())
+  reviewId  String
+  url       String
+  alt       String
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+}
+
+model Favorite {
+  userId       String
+  restaurantId String
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@id([userId, restaurantId])
+  @@index([restaurantId])
+}
+
+model FoodTour {
+  id                 String        @id @default(cuid())
+  userId             String
+  cityId             String
+  title              String
+  startAddress       String
+  startLatitude      Float
+  startLongitude     Float
+  startAt            DateTime
+  durationHours      Int
+  numberOfDays       Int
+  numberOfPeople     Int
+  budget             Int
+  transportMode      TransportMode
+  preferences        Json
+  totalCost          Int
+  totalDistanceKm    Float
+  totalTravelMinutes Int
+  status             TourStatus    @default(SAVED)
+  isDemo             Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city  City           @relation(fields: [cityId], references: [id])
+  stops FoodTourStop[]
+
+  @@index([userId])
+  @@index([cityId])
+  @@index([createdAt])
+}
+
+model FoodTourStop {
+  id                     String   @id @default(cuid())
+  foodTourId             String
+  restaurantId           String
+  stopOrder              Int
+  mealType               MealType
+  plannedArrivalAt       DateTime
+  estimatedMealMinutes   Int
+  estimatedTravelMinutes Int
+  distanceFromPreviousKm Float
+  estimatedCost          Int
+  reason                 String
+  createdAt              DateTime @default(now())
+
+  foodTour   FoodTour   @relation(fields: [foodTourId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([foodTourId, stopOrder])
+  @@index([restaurantId])
+}
+
+model Soundscape {
+  id          String   @id @default(cuid())
+  cityId      String
+  title       String
+  audioUrl    String
+  attribution String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  city City @relation(fields: [cityId], references: [id])
+
+  @@index([cityId])
+}
+
+model ModerationAction {
+  id          String               @id @default(cuid())
+  moderatorId String
+  reviewId    String
+  action      ModerationActionType
+  reason      String
+  createdAt   DateTime             @default(now())
+
+  moderator User   @relation("ModeratorActions", fields: [moderatorId], references: [id])
+  review    Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([moderatorId])
+  @@index([reviewId])
+}
