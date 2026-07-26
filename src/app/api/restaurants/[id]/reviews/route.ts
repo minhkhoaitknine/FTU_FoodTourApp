@@ -1,10 +1,14 @@
+import { revalidateTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { ZodError } from "zod";
 import { jsonError, serverError, validationError } from "@/lib/api/responses";
 import { getCurrentUser } from "@/lib/auth/users";
 import { reviewInputSchema } from "@/services/reviews/review-schemas";
 import { createOrUpdateReview } from "@/services/reviews/review-service";
-import { listRestaurantReviews } from "@/services/restaurants/restaurant-service";
+import {
+  listRestaurantReviews,
+  RESTAURANT_CACHE_TAG
+} from "@/services/restaurants/restaurant-service";
 import { reviewListQuerySchema } from "@/services/restaurants/restaurant-schemas";
 
 type RouteContext = {
@@ -39,6 +43,7 @@ export async function POST(request: Request, context: RouteContext) {
     const review = await createOrUpdateReview(user.id, id, input);
     if (!review) return jsonError("Restaurant not found.", 404);
 
+    revalidateTag(RESTAURANT_CACHE_TAG, { expire: 0 });
     return Response.json({ ok: true, review }, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) return validationError(error);

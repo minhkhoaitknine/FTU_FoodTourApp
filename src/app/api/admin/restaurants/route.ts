@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { ZodError } from "zod";
 import { jsonError, serverError, validationError } from "@/lib/api/responses";
 import { requireApiRole } from "@/lib/auth/api-guards";
@@ -9,6 +10,7 @@ import {
   adminCreateRestaurantSchema,
   adminListQuerySchema
 } from "@/services/admin/admin-schemas";
+import { RESTAURANT_CACHE_TAG } from "@/services/restaurants/restaurant-service";
 
 export async function GET(request: Request) {
   try {
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
 
     const input = adminCreateRestaurantSchema.parse(await request.json());
     const restaurant = await createAdminRestaurant(input);
+    revalidateTag(RESTAURANT_CACHE_TAG, { expire: 0 });
     return Response.json({ ok: true, restaurant }, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) return validationError(error);

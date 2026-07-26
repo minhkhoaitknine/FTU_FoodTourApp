@@ -1,6 +1,9 @@
 import { Prisma } from "@prisma/client";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import type { RestaurantListQuery, ReviewListQuery } from "@/services/restaurants/restaurant-schemas";
+
+export const RESTAURANT_CACHE_TAG = "restaurant-catalog";
 
 const restaurantListSelect = {
   id: true,
@@ -48,39 +51,90 @@ export type RestaurantCard = Prisma.RestaurantGetPayload<{
   select: typeof restaurantListSelect;
 }>;
 
+const getRestaurantCatalog = unstable_cache(
+  () =>
+    prisma.restaurant.findMany({
+      where: {
+        isActive: true,
+        deletedAt: null
+      },
+      select: restaurantListSelect,
+      orderBy: [{ ratingAverage: "desc" }, { ratingCount: "desc" }, { name: "asc" }]
+    }),
+  ["public-restaurant-catalog-v1"],
+  {
+    revalidate: 300,
+    tags: [RESTAURANT_CACHE_TAG]
+  }
+);
+
+const getCachedCities = unstable_cache(
+  () =>
+    prisma.city.findMany({
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        region: true,
+        latitude: true,
+        longitude: true
+      }
+    }),
+  ["public-city-list-v1"],
+  {
+    revalidate: 3600,
+    tags: ["cities"]
+  }
+);
+
+function normalizeSearch(value: string) {
+  return value.trim().toLocaleLowerCase("vi");
+}
+
+export function filterRestaurantCatalog(
+  catalog: RestaurantCard[],
+  query: RestaurantListQuery
+) {
+  const search = normalizeSearch(query.q);
+  const city = normalizeSearch(query.city);
+
+  return catalog.filter((restaurant) => {
+    if (search) {
+      const matchesSearch = [
+        restaurant.name,
+        restaurant.description,
+        restaurant.address,
+        ...restaurant.tags.map((tag) => tag.name)
+      ].some((value) => normalizeSearch(value).includes(search));
+
+      if (!matchesSearch) return false;
+    }
+
+    if (city && !normalizeSearch(restaurant.city.name).includes(city)) return false;
+    if (query.type && restaurant.type !== query.type) return false;
+    if (query.priceRange && restaurant.priceRange !== query.priceRange) return false;
+    if (
+      query.vegetarian !== undefined &&
+      restaurant.isVegetarianFriendly !== query.vegetarian
+    ) {
+      return false;
+    }
+    if (query.spicy !== undefined && restaurant.isSpicy !== query.spicy) return false;
+    if (query.minRating !== undefined && restaurant.ratingAverage < query.minRating) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
 export async function listRestaurants(query: RestaurantListQuery) {
-  const where: Prisma.RestaurantWhereInput = {
-    isActive: true,
-    deletedAt: null,
-    ...(query.q
-      ? {
-          OR: [
-            { name: { contains: query.q, mode: "insensitive" } },
-            { description: { contains: query.q, mode: "insensitive" } },
-            { address: { contains: query.q, mode: "insensitive" } },
-            { tags: { some: { name: { contains: query.q, mode: "insensitive" } } } }
-          ]
-        }
-      : {}),
-    ...(query.city ? { city: { name: { contains: query.city, mode: "insensitive" } } } : {}),
-    ...(query.type ? { type: query.type } : {}),
-    ...(query.priceRange ? { priceRange: query.priceRange } : {}),
-    ...(query.vegetarian !== undefined ? { isVegetarianFriendly: query.vegetarian } : {}),
-    ...(query.spicy !== undefined ? { isSpicy: query.spicy } : {}),
-    ...(query.minRating !== undefined ? { ratingAverage: { gte: query.minRating } } : {})
-  };
+  const catalog = await getRestaurantCatalog();
+  const filtered = filterRestaurantCatalog(catalog, query);
 
   const skip = (query.page - 1) * query.limit;
-  const [items, total] = await prisma.$transaction([
-    prisma.restaurant.findMany({
-      where,
-      select: restaurantListSelect,
-      orderBy: [{ ratingAverage: "desc" }, { ratingCount: "desc" }, { name: "asc" }],
-      skip,
-      take: query.limit
-    }),
-    prisma.restaurant.count({ where })
-  ]);
+  const items = filtered.slice(skip, skip + query.limit);
+  const total = filtered.length;
 
   return {
     items,
@@ -94,15 +148,16 @@ export async function listRestaurants(query: RestaurantListQuery) {
 }
 
 export async function listMapRestaurants(limit = 80) {
-  return prisma.restaurant.findMany({
-    where: {
-      isActive: true,
-      deletedAt: null
-    },
-    select: restaurantListSelect,
-    orderBy: [{ city: { name: "asc" } }, { ratingAverage: "desc" }, { name: "asc" }],
-    take: limit
-  });
+  const catalog = await getRestaurantCatalog();
+
+  return [...catalog]
+    .sort(
+      (a, b) =>
+        a.city.name.localeCompare(b.city.name, "vi") ||
+        b.ratingAverage - a.ratingAverage ||
+        a.name.localeCompare(b.name, "vi")
+    )
+    .slice(0, limit);
 }
 
 export async function getRestaurantBySlugOrId(slugOrId: string) {
@@ -224,14 +279,5 @@ export async function listRestaurantReviews(slugOrId: string, query: ReviewListQ
 }
 
 export async function listCities() {
-  return prisma.city.findMany({
-    orderBy: { name: "asc" },
-    select: {
-      id: true,
-      name: true,
-      region: true,
-      latitude: true,
-      longitude: true
-    }
-  });
+  return getCachedCities();
 }
