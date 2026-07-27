@@ -28,13 +28,16 @@ Expected result:
 2. Open `/restaurants`; search by `Hue`, `Da Nang` or `Ha Noi`.
 3. Open one restaurant detail page; confirm menu, review list, favorite button and review form render.
 4. Open `/map`; confirm markers and route preview render.
-5. Sign in with `user@foodtour.demo` and generate a tour at `/tour-generator`.
-6. Save the generated tour, then open `/tours` and its detail page.
-7. Favorite a restaurant, then confirm it appears in `/favorites`.
-8. Open `/soundscape`; confirm seeded soundscape metadata appears.
-9. Sign in with `admin@foodtour.demo`; open `/admin`.
-10. Hide/restore a restaurant, lock/unlock a non-admin user and moderate a review.
-11. Sign in with `user@foodtour.demo`; confirm `/admin` redirects away in the browser and `/api/admin/dashboard` returns `403`.
+5. Click My Location on `/map`; confirm the map recenters to the device location with a close zoom.
+6. Sign in with `user@foodtour.demo` and generate a tour at `/tour-generator`.
+7. Save the generated tour, then open `/dashboard`; confirm the mini map focuses on the latest saved tour route.
+8. Open `/tours` and a tour detail page.
+9. Favorite a restaurant, then confirm it appears in `/favorites`.
+10. Open `/soundscape`; confirm seeded soundscape metadata appears.
+11. Sign in with `admin@foodtour.demo`; open `/admin`.
+12. Confirm Admin Panel has a clear Back to Dashboard action.
+13. Hide/restore a restaurant, lock/unlock a non-admin user and moderate a review.
+14. Sign in with `user@foodtour.demo`; confirm `/admin` redirects away in the browser and `/api/admin/dashboard` returns `403`.
 
 ## Demo Integrity
 

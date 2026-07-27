@@ -2,7 +2,7 @@
 
 Food Tour Generator is a full-stack web application for planning local Vietnamese food tours based on budget, time, transport mode, dietary preferences, allergies and distance.
 
-This repository is being built in phases. The current phase is release readiness and deployment preparation.
+This repository is at release-candidate stage for a public student/demo deployment.
 
 ## Current Stack
 
@@ -117,18 +117,15 @@ Apply production migrations:
 npm.cmd run db:deploy
 ```
 
-## Phase Plan
+## Product Areas
 
-- Phase 2: Project initialization.
-- Phase 3: Database schema, migration and reproducible seed data.
-- Phase 4: Authentication and authorization.
-- Phase 5: Restaurant core module.
-- Phase 6: Smart map.
-- Phase 7: Recommendation engine.
-- Phase 8: Food tour user flow.
-- Phase 9: Reviews, favorites and soundscape.
-- Phase 10: Admin module.
-- Phase 11: Release readiness, error/loading states and deployment preparation.
+- Public landing page at `/`.
+- Authenticated dashboard at `/dashboard`.
+- Tour generator, saved tour history and tour details.
+- Restaurant explorer, restaurant detail, reviews and favorites.
+- Smart food map with OpenStreetMap and browser geolocation.
+- Soundscape player for seeded city ambience metadata.
+- Admin Panel at `/admin` for admin-only demo data operations.
 
 ## Demo Data Policy
 
@@ -186,6 +183,8 @@ Protected pages:
 
 - `/dashboard` requires a signed-in user.
 - `/admin` requires the `ADMIN` role.
+- App navigation uses `/dashboard` as the signed-in entry point. The public `/` page is not shown as a primary app nav item.
+- The `Admin Panel` nav item is only shown to admin users.
 
 Auth uses an httpOnly cookie named `foodtour_session`. The frontend does not store the token in `localStorage`.
 
@@ -249,6 +248,7 @@ Map behavior:
 - Synchronized restaurant list and selected marker.
 - Search/filter by text, city and restaurant type.
 - Browser geolocation button for current user location.
+- The My Location control recenters the map to the device location with a close zoom.
 - Route preview line for the first filtered stops.
 - Haversine fallback distance estimate. No external routing/geocoding API is required for the MVP demo.
 
@@ -339,6 +339,7 @@ Behavior:
 - The generator page requires login.
 - The server generates and saves tours; the client does not decide totals.
 - Saved tour history is scoped to the current user.
+- Dashboard mini map focuses on the latest saved tour when one exists, and only falls back to device location when there are no saved route points.
 - Tour detail shows timeline, stop reasons, estimated cost, travel time and distance.
 - Clone creates a new saved copy.
 - Delete uses soft delete by setting `deletedAt` and archiving the tour.
@@ -390,6 +391,7 @@ Implemented APIs:
 Behavior:
 
 - Admin page and APIs require the `ADMIN` role.
+- Admin Panel has a direct `Back to Dashboard` action.
 - Admin dashboard shows key counts and recent review/tour activity.
 - Admin can create demo restaurants and edit core fields.
 - Admin can hide or restore restaurants through `isActive`.

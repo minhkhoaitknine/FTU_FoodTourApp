@@ -1,5 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { unstable_cache } from "next/cache";
+import {
+  withCityUiMetadata,
+  withRestaurantUiMetadata
+} from "@/lib/api/ui-metadata";
 import { prisma } from "@/lib/db/prisma";
 import type { RestaurantListQuery, ReviewListQuery } from "@/services/restaurants/restaurant-schemas";
 
@@ -137,7 +141,7 @@ export async function listRestaurants(query: RestaurantListQuery) {
   const total = filtered.length;
 
   return {
-    items,
+    items: items.map(withRestaurantUiMetadata),
     pagination: {
       page: query.page,
       limit: query.limit,
@@ -157,11 +161,12 @@ export async function listMapRestaurants(limit = 80) {
         b.ratingAverage - a.ratingAverage ||
         a.name.localeCompare(b.name, "vi")
     )
-    .slice(0, limit);
+    .slice(0, limit)
+    .map(withRestaurantUiMetadata);
 }
 
 export async function getRestaurantBySlugOrId(slugOrId: string) {
-  return prisma.restaurant.findFirst({
+  const restaurant = await prisma.restaurant.findFirst({
     where: {
       OR: [{ id: slugOrId }, { slug: slugOrId }],
       isActive: true,
@@ -198,6 +203,8 @@ export async function getRestaurantBySlugOrId(slugOrId: string) {
       }
     }
   });
+
+  return restaurant ? withRestaurantUiMetadata(restaurant) : null;
 }
 
 export async function getRestaurantMenu(slugOrId: string) {
@@ -279,5 +286,6 @@ export async function listRestaurantReviews(slugOrId: string, query: ReviewListQ
 }
 
 export async function listCities() {
-  return getCachedCities();
+  const cities = await getCachedCities();
+  return cities.map(withCityUiMetadata);
 }

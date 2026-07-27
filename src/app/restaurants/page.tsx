@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AppShell, PageContainer } from "@/components/layout/app-shell";
 import { RestaurantCard } from "@/components/restaurants/restaurant-card";
 import { RestaurantFilters } from "@/components/restaurants/restaurant-filters";
 import { listCities, listRestaurants } from "@/services/restaurants/restaurant-service";
@@ -42,22 +43,23 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
   );
   const query = restaurantListQuerySchema.parse(rawQuery);
   const [{ items, pagination }, cities] = await Promise.all([listRestaurants(query), listCities()]);
+  const shellCityNames = query.city ? [query.city] : cities.map((city) => city.name);
 
   return (
-    <main className="min-h-screen p-4 text-ink md:p-6">
-      <section className="mx-auto max-w-7xl space-y-5">
-        <header className="rounded-[28px] bg-white/85 p-5 shadow-panel">
+    <AppShell currentCityNames={shellCityNames}>
+      <PageContainer>
+        <header className="rounded-[28px] bg-surface-elevated/90 p-5 shadow-panel">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay-700">
-                Restaurant core module
+              <p className="text-sm font-semibold uppercase text-brand-strong">
+                Restaurant explorer
               </p>
-              <h1 className="mt-2 text-3xl font-bold md:text-4xl">Explore demo food places</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-                Search and filter 60 fictitious demo restaurants across major Vietnamese travel cities.
+              <h1 className="mt-2 text-page-title text-content">Explore food places</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-content-muted">
+                Search seeded restaurants across major Vietnamese travel cities and open details from cards or map.
               </p>
             </div>
-            <Link className="rounded-2xl bg-ink px-4 py-3 text-sm font-bold text-white" href="/dashboard">
+            <Link className="rounded-app bg-surface-inverse px-4 py-3 text-sm font-bold text-content-inverse" href="/dashboard">
               Dashboard
             </Link>
           </div>
@@ -76,7 +78,7 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
           }}
         />
 
-        <div className="rounded-[24px] bg-white/80 px-4 py-3 text-sm font-semibold text-stone-600">
+        <div className="rounded-[24px] bg-surface-elevated/86 px-4 py-3 text-sm font-semibold text-content-muted shadow-panel">
           Showing {items.length} of {pagination.total} restaurants. Page {pagination.page} of {pagination.totalPages}.
         </div>
 
@@ -89,15 +91,15 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
             ))}
           </div>
         ) : (
-          <div className="rounded-[28px] bg-white/90 p-8 text-center shadow-panel">
-            <h2 className="text-2xl font-bold">No restaurants found</h2>
-            <p className="mt-2 text-sm text-stone-600">Try clearing filters or choosing another city.</p>
+          <div className="rounded-[28px] bg-surface-elevated/90 p-8 text-center shadow-panel">
+            <h2 className="text-section-title text-content">No restaurants found</h2>
+            <p className="mt-2 text-sm text-content-muted">Try clearing filters or choosing another city.</p>
           </div>
         )}
 
         <RestaurantPagination pagination={pagination} params={params} />
-      </section>
-    </main>
+      </PageContainer>
+    </AppShell>
   );
 }
 
@@ -121,23 +123,23 @@ function RestaurantPagination({
   return (
     <nav
       aria-label="Restaurant pages"
-      className="flex flex-col gap-3 rounded-[24px] bg-white/88 px-4 py-3 shadow-panel md:flex-row md:items-center md:justify-between"
+      className="flex flex-col gap-3 rounded-[24px] bg-surface-elevated/88 px-4 py-3 shadow-panel md:flex-row md:items-center md:justify-between"
     >
-      <p className="text-sm font-semibold text-stone-600">
+      <p className="text-sm font-semibold text-content-muted">
         Page {pagination.page} of {pagination.totalPages}
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
         {canGoPrevious ? (
           <Link
-            className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-bold text-clay-700 shadow-sm transition hover:text-ink"
+            className="inline-flex items-center gap-2 rounded-app bg-surface px-4 py-2 text-sm font-bold text-brand-strong shadow-sm transition hover:text-content"
             href={pageHref(params, pagination.page - 1)}
           >
             <ChevronLeft size={16} />
             Previous
           </Link>
         ) : (
-          <span className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2 text-sm font-bold text-stone-400">
+          <span className="inline-flex items-center gap-2 rounded-app bg-surface-muted px-4 py-2 text-sm font-bold text-content-subtle">
             <ChevronLeft size={16} />
             Previous
           </span>
@@ -154,8 +156,8 @@ function RestaurantPagination({
                 aria-current={page === pagination.page ? "page" : undefined}
                 className={`grid size-10 place-items-center rounded-2xl text-sm font-bold transition ${
                   page === pagination.page
-                    ? "bg-ink text-white"
-                    : "bg-white text-clay-700 shadow-sm hover:text-ink"
+                    ? "bg-surface-inverse text-content-inverse"
+                    : "bg-surface text-brand-strong shadow-sm hover:text-content"
                 }`}
                 href={pageHref(params, page)}
               >
@@ -167,14 +169,14 @@ function RestaurantPagination({
 
         {canGoNext ? (
           <Link
-            className="inline-flex items-center gap-2 rounded-2xl bg-ink px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-stone-800"
+            className="inline-flex items-center gap-2 rounded-app bg-surface-inverse px-4 py-2 text-sm font-bold text-content-inverse shadow-sm transition hover:bg-brand-strong"
             href={pageHref(params, pagination.page + 1)}
           >
             Next
             <ChevronRight size={16} />
           </Link>
         ) : (
-          <span className="inline-flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-2 text-sm font-bold text-stone-400">
+          <span className="inline-flex items-center gap-2 rounded-app bg-surface-muted px-4 py-2 text-sm font-bold text-content-subtle">
             Next
             <ChevronRight size={16} />
           </span>

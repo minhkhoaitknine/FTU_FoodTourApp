@@ -12,6 +12,7 @@ import {
   Unlock,
   Users
 } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useMemo, useState, useTransition } from "react";
 import { formatRating, formatVnd } from "@/lib/format";
 
@@ -28,6 +29,7 @@ type AdminPayload = {
     id: string;
     fullName: string;
     email: string;
+    role: string;
   };
   dashboard: {
     stats: {
@@ -121,6 +123,7 @@ type AdminReview = {
 };
 
 const tabs = ["Overview", "Restaurants", "Users", "Reviews"] as const;
+const moderatorTabs = ["Reviews"] as const;
 
 function label(value: string) {
   return value
@@ -143,7 +146,11 @@ async function patchJson<T>(url: string, body: unknown) {
 }
 
 export function AdminDashboard({ initialData }: { initialData: AdminPayload }) {
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("Overview");
+  const isModeratorOnly = initialData.user.role === "MODERATOR";
+  const availableTabs = isModeratorOnly ? moderatorTabs : tabs;
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>(
+    isModeratorOnly ? "Reviews" : "Overview"
+  );
   const [restaurants, setRestaurants] = useState(initialData.restaurants.items);
   const [users, setUsers] = useState(initialData.users.items);
   const [reviews, setReviews] = useState(initialData.reviews.items);
@@ -240,26 +247,40 @@ export function AdminDashboard({ initialData }: { initialData: AdminPayload }) {
         <header className="rounded-[24px] bg-white/90 p-5 shadow-panel">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay-700">Phase 10</p>
-              <h1 className="mt-2 text-3xl font-bold md:text-4xl">Admin operations</h1>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay-700">Admin Panel</p>
+              <h1 className="mt-2 text-3xl font-bold md:text-4xl">
+                {isModeratorOnly ? "Moderation workspace" : "Admin operations"}
+              </h1>
               <p className="mt-2 text-sm leading-6 text-stone-600">
-                Signed in as {initialData.user.fullName} ({initialData.user.email}). Manage the MVP demo data from one
-                protected workspace.
+                Signed in as {initialData.user.fullName} ({initialData.user.email}).
+                {isModeratorOnly
+                  ? " Review, publish, hide or flag user restaurant reviews."
+                  : " Manage the MVP demo data from one protected workspace."}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {tabs.map((tab) => (
-                <button
-                  className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${
-                    activeTab === tab ? "bg-ink text-white" : "bg-white text-stone-600 shadow-sm hover:text-ink"
-                  }`}
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  type="button"
+            <div className="space-y-3">
+              <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
+                <Link
+                  className="rounded-2xl border border-clay-100 bg-white px-4 py-3 text-sm font-bold text-clay-700 shadow-sm transition hover:text-ink"
+                  href="/dashboard"
                 >
-                  {tab}
-                </button>
-              ))}
+                  Back to Dashboard
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableTabs.map((tab) => (
+                  <button
+                    className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                      activeTab === tab ? "bg-ink text-white" : "bg-white text-stone-600 shadow-sm hover:text-ink"
+                    }`}
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    type="button"
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </header>

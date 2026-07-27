@@ -4,22 +4,101 @@
 
 :root {
   color-scheme: light;
-  --background: #fff8ed;
-  --foreground: #2c241f;
+
+  /* Semantic color channels are HSL triplets for Tailwind alpha support. */
+  --color-canvas: 42 35% 96%;
+  --color-surface: 45 50% 98%;
+  --color-surface-elevated: 0 0% 100%;
+  --color-surface-muted: 40 24% 92%;
+  --color-surface-inverse: 24 13% 16%;
+  --color-content: 24 13% 16%;
+  --color-content-muted: 25 8% 39%;
+  --color-content-subtle: 24 7% 52%;
+  --color-content-inverse: 45 50% 98%;
+  --color-brand: 22 68% 41%;
+  --color-brand-strong: 20 70% 32%;
+  --color-brand-soft: 31 67% 91%;
+  --color-success: 151 45% 32%;
+  --color-success-soft: 144 35% 91%;
+  --color-info: 197 52% 36%;
+  --color-info-soft: 194 45% 91%;
+  --color-warning: 36 77% 42%;
+  --color-warning-soft: 39 75% 91%;
+  --color-danger: 2 54% 45%;
+  --color-danger-soft: 3 65% 94%;
+  --color-border: 35 18% 82%;
+  --color-border-strong: 31 14% 68%;
+  --color-focus: 151 50% 31%;
+
+  --font-sans: "Segoe UI", "Noto Sans", Arial, Helvetica, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-display: 2.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-full: 999px;
+
+  --shadow-panel: 0 8px 24px rgb(63 49 35 / 0.1);
+  --shadow-lift: 0 12px 28px rgb(63 49 35 / 0.14);
+  --shadow-overlay: 0 20px 48px rgb(34 28 24 / 0.2);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+  --duration-background: 1200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --z-base: 0;
+  --z-sticky: 20;
+  --z-dropdown: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  /* Backward-compatible aliases used by existing pages. */
+  --background: hsl(var(--color-canvas));
+  --foreground: hsl(var(--color-content));
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  background: hsl(var(--color-canvas));
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 20% 10%, rgba(217, 123, 40, 0.18), transparent 28rem),
-    linear-gradient(135deg, #fff8ed 0%, #f8ead5 42%, #f3dcc1 100%);
+  background: hsl(var(--color-canvas));
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
 }
 
 a {
@@ -27,30 +106,86 @@ a {
   text-decoration: none;
 }
 
+button,
+input,
+select,
+textarea {
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0;
+}
+
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid hsl(var(--color-focus) / 0.42);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: hsl(var(--color-brand-soft));
+  color: hsl(var(--color-brand-strong));
+}
+
 .foodtour-marker {
   display: grid;
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 3px solid #fff;
+  border: 3px solid hsl(var(--color-surface-elevated));
   border-radius: 999px;
-  background: #d97b28;
-  box-shadow: 0 8px 22px rgba(44, 36, 31, 0.22);
+  background: hsl(var(--color-brand));
+  box-shadow: var(--shadow-panel);
   font-size: 17px;
+  transition:
+    width var(--duration-fast) var(--ease-standard),
+    height var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
 }
 
 .foodtour-marker-selected {
   width: 40px;
   height: 40px;
-  background: #1f6c3b;
-  box-shadow: 0 10px 28px rgba(31, 108, 59, 0.35);
+  background: hsl(var(--color-success));
+  box-shadow: 0 10px 28px hsl(var(--color-success) / 0.28);
 }
 
 .foodtour-user-marker {
   width: 22px;
   height: 22px;
-  border: 4px solid #fff;
+  border: 4px solid hsl(var(--color-surface-elevated));
   border-radius: 999px;
-  background: #2f80ed;
-  box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.18);
+  background: hsl(var(--color-info));
+  box-shadow: 0 0 0 4px hsl(var(--color-info) / 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

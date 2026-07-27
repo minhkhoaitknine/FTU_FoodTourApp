@@ -22,6 +22,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (error instanceof Error && error.message === "CANNOT_LOCK_SELF") {
       return jsonError("Admins cannot lock their own current account.", 422);
     }
+    if (error instanceof Error && error.message === "CANNOT_CHANGE_SELF_ROLE") {
+      return jsonError("Admins cannot remove their own admin role.", 422);
+    }
     console.error(error);
     return serverError();
   }

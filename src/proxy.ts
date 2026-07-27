@@ -16,8 +16,7 @@ async function readSession(request: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, secret);
     return {
-      userId: payload.userId,
-      role: payload.role
+      userId: payload.userId
     };
   } catch {
     return null;
@@ -32,10 +31,6 @@ export async function proxy(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
-  }
-
-  if (pathname.startsWith("/admin") && session.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

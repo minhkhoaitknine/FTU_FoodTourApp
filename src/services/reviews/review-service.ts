@@ -2,7 +2,7 @@ import { ReviewStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type { ReviewInput } from "@/services/reviews/review-schemas";
 
-async function recalculateRestaurantRating(restaurantId: string) {
+export async function recalculateRestaurantRating(restaurantId: string) {
   const aggregate = await prisma.review.aggregate({
     where: {
       restaurantId,
@@ -34,28 +34,43 @@ export async function createOrUpdateReview(userId: string, restaurantId: string,
 
   if (!restaurant) return null;
 
-  const review = await prisma.review.upsert({
+  const existing = await prisma.review.findUnique({
     where: {
       userId_restaurantId: {
         userId,
         restaurantId
       }
     },
-    create: {
-      userId,
-      restaurantId,
-      rating: input.rating,
-      comment: input.comment,
-      status: ReviewStatus.PUBLISHED
-    },
-    update: {
-      rating: input.rating,
-      comment: input.comment,
-      status: ReviewStatus.PUBLISHED,
-      moderationReason: null,
-      deletedAt: null
+    select: {
+      id: true,
+      status: true
     }
   });
+
+  const review = existing
+    ? await prisma.review.update({
+        where: { id: existing.id },
+        data: {
+          rating: input.rating,
+          comment: input.comment,
+          status:
+            existing.status === ReviewStatus.PUBLISHED
+              ? ReviewStatus.PUBLISHED
+              : ReviewStatus.PENDING,
+          moderationReason:
+            existing.status === ReviewStatus.PUBLISHED ? null : "Edited by user; pending review.",
+          deletedAt: null
+        }
+      })
+    : await prisma.review.create({
+        data: {
+          userId,
+          restaurantId,
+          rating: input.rating,
+          comment: input.comment,
+          status: ReviewStatus.PUBLISHED
+        }
+      });
 
   await recalculateRestaurantRating(restaurantId);
   return review;
@@ -70,7 +85,8 @@ export async function updateOwnReview(userId: string, reviewId: string, input: R
     },
     select: {
       id: true,
-      restaurantId: true
+      restaurantId: true,
+      status: true
     }
   });
 
@@ -81,8 +97,12 @@ export async function updateOwnReview(userId: string, reviewId: string, input: R
     data: {
       rating: input.rating,
       comment: input.comment,
-      status: ReviewStatus.PUBLISHED,
-      moderationReason: null
+      status:
+        existing.status === ReviewStatus.PUBLISHED
+          ? ReviewStatus.PUBLISHED
+          : ReviewStatus.PENDING,
+      moderationReason:
+        existing.status === ReviewStatus.PUBLISHED ? null : "Edited by user; pending review."
     }
   });
 
@@ -131,4 +151,3 @@ export async function findOwnReview(userId: string, restaurantId: string) {
     }
   });
 }
-

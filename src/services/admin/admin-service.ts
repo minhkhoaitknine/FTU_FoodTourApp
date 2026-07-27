@@ -39,6 +39,43 @@ async function createUniqueSlug(name: string) {
   return slug;
 }
 
+function defaultOpeningHours() {
+  return Array.from({ length: 7 }, (_, dayOfWeek) => ({
+    dayOfWeek,
+    openTime: "07:00",
+    closeTime: "22:00",
+    isClosed: false
+  }));
+}
+
+function defaultTags(input: AdminCreateRestaurantInput) {
+  const tags = new Set(["local-food", "lunch", "dinner"]);
+
+  if (input.isVegetarianFriendly) tags.add("vegetarian");
+  if (input.isSpicy) tags.add("spicy");
+  if (input.type === "CAFE") tags.add("coffee");
+  if (input.type === "DESSERT_SHOP") tags.add("dessert");
+  if (input.type === "MARKET_STALL") tags.add("market");
+  if (input.type === "STREET_FOOD") tags.add("street-food");
+
+  return Array.from(tags).map((name) => ({ name }));
+}
+
+function defaultMenuItems(input: AdminCreateRestaurantInput) {
+  const averagePrice = Math.max(15_000, Math.round((input.minPrice + input.maxPrice) / 2));
+
+  return [
+    {
+      name: `${input.name} signature dish`,
+      description: "Admin-created demo menu item for food tour planning.",
+      price: averagePrice,
+      isVegetarian: input.isVegetarianFriendly,
+      isSpicy: input.isSpicy,
+      allergens: []
+    }
+  ];
+}
+
 export async function getAdminDashboard() {
   const [
     users,
@@ -174,18 +211,39 @@ export async function createAdminRestaurant(input: AdminCreateRestaurantInput) {
       slug,
       culturalStory: input.culturalStory,
       eatingTips: input.eatingTips,
-      isDemo: true
+      isDemo: true,
+      tags: {
+        create: defaultTags(input)
+      },
+      openingHours: {
+        create: defaultOpeningHours()
+      },
+      menuCategories: {
+        create: {
+          name: "Signature dishes",
+          sortOrder: 1,
+          items: {
+            create: defaultMenuItems(input)
+          }
+        }
+      }
     },
     select: adminRestaurantSelect
   });
 }
 
 export async function updateAdminRestaurant(id: string, input: AdminUpdateRestaurantInput) {
-  if (
-    input.minPrice !== undefined &&
-    input.maxPrice !== undefined &&
-    input.minPrice > input.maxPrice
-  ) {
+  const current =
+    input.minPrice === undefined || input.maxPrice === undefined
+      ? await prisma.restaurant.findUnique({
+          where: { id },
+          select: { minPrice: true, maxPrice: true }
+        })
+      : null;
+  const nextMinPrice = input.minPrice ?? current?.minPrice;
+  const nextMaxPrice = input.maxPrice ?? current?.maxPrice;
+
+  if (nextMinPrice !== undefined && nextMaxPrice !== undefined && nextMinPrice > nextMaxPrice) {
     throw new Error("MIN_PRICE_GT_MAX_PRICE");
   }
 
@@ -243,6 +301,9 @@ export async function updateAdminUser(id: string, input: AdminUpdateUserInput, a
   if (id === actorId && input.isLocked === true) {
     throw new Error("CANNOT_LOCK_SELF");
   }
+  if (id === actorId && input.role !== undefined && input.role !== "ADMIN") {
+    throw new Error("CANNOT_CHANGE_SELF_ROLE");
+  }
 
   return prisma.user.update({
     where: { id },
@@ -260,6 +321,7 @@ const adminReviewSelect = {
   createdAt: true,
   updatedAt: true,
   user: { select: { id: true, fullName: true, email: true } },
+  restaurantId: true,
   restaurant: { select: { id: true, name: true, slug: true, city: { select: { name: true } } } }
 } satisfies Prisma.ReviewSelect;
 
@@ -322,6 +384,24 @@ export async function moderateAdminReview(id: string, input: AdminModerateReview
         reviewId: id,
         action: toModerationAction(input.status),
         reason: input.reason
+      }
+    });
+
+    const aggregate = await tx.review.aggregate({
+      where: {
+        restaurantId: review.restaurantId,
+        status: ReviewStatus.PUBLISHED,
+        deletedAt: null
+      },
+      _avg: { rating: true },
+      _count: { rating: true }
+    });
+
+    await tx.restaurant.update({
+      where: { id: review.restaurantId },
+      data: {
+        ratingAverage: Number((aggregate._avg.rating ?? 0).toFixed(2)),
+        ratingCount: aggregate._count.rating
       }
     });
 

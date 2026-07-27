@@ -1,5 +1,6 @@
 import { revalidateTag } from "next/cache";
 import { notFound } from "next/navigation";
+import { ReviewStatus } from "@prisma/client";
 import { ZodError } from "zod";
 import { jsonError, serverError, validationError } from "@/lib/api/responses";
 import { getCurrentUser } from "@/lib/auth/users";
@@ -22,7 +23,10 @@ export async function GET(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const url = new URL(request.url);
     const query = reviewListQuerySchema.parse(Object.fromEntries(url.searchParams));
-    const result = await listRestaurantReviews(id, query);
+    const result = await listRestaurantReviews(id, {
+      ...query,
+      status: ReviewStatus.PUBLISHED
+    });
     if (!result) notFound();
 
     return Response.json({ ok: true, ...result });

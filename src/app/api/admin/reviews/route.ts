@@ -6,7 +6,7 @@ import { adminReviewListQuerySchema } from "@/services/admin/admin-schemas";
 
 export async function GET(request: Request) {
   try {
-    const auth = await requireApiRole(["ADMIN"]);
+    const auth = await requireApiRole(["ADMIN", "MODERATOR"]);
     if (!auth.ok) return jsonError(auth.message, auth.status);
 
     const url = new URL(request.url);

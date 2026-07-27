@@ -1,10 +1,19 @@
 import { Prisma, TourStatus, TransportMode } from "@prisma/client";
+import { withFoodTourUiMetadata } from "@/lib/api/ui-metadata";
 import { prisma } from "@/lib/db/prisma";
 import { generateRecommendation } from "@/services/recommendations/recommendation-engine";
 import { listRecommendationCandidates } from "@/services/recommendations/recommendation-data";
-import type { CreateFoodTourInput } from "@/services/food-tours/food-tour-schemas";
+import { estimateTravelMinutes, haversineDistanceKm, type Coordinate } from "@/services/routing/haversine";
+import type {
+  CreateFoodTourInput,
+  UpdateFoodTourPlanInput
+} from "@/services/food-tours/food-tour-schemas";
 
 function engineTransportMode(mode: TransportMode) {
+  return mode === TransportMode.PUBLIC_TRANSIT ? TransportMode.MOTORBIKE : mode;
+}
+
+function routingTransportMode(mode: TransportMode) {
   return mode === TransportMode.PUBLIC_TRANSIT ? TransportMode.MOTORBIKE : mode;
 }
 
@@ -93,7 +102,7 @@ export async function generateAndSaveFoodTour(userId: string, input: CreateFoodT
     include: foodTourDetailInclude
   });
 
-  return { tour, result };
+  return { tour: withFoodTourUiMetadata(tour), result };
 }
 
 export const foodTourDetailInclude = {
@@ -112,18 +121,34 @@ export const foodTourDetailInclude = {
 };
 
 export async function listUserFoodTours(userId: string) {
-  return prisma.foodTour.findMany({
+  const tours = await prisma.foodTour.findMany({
     where: {
       userId,
       deletedAt: null
     },
     orderBy: { createdAt: "desc" },
-    include: {
-      city: true,
+    select: {
+      id: true,
+      title: true,
+      totalCost: true,
+      totalDistanceKm: true,
+      totalTravelMinutes: true,
+      city: {
+        select: {
+          id: true,
+          name: true,
+          region: true,
+          latitude: true,
+          longitude: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      },
       stops: {
         orderBy: { stopOrder: "asc" },
         take: 3,
-        include: {
+        select: {
+          id: true,
           restaurant: {
             select: {
               name: true,
@@ -131,13 +156,29 @@ export async function listUserFoodTours(userId: string) {
             }
           }
         }
+      },
+      _count: {
+        select: {
+          stops: true
+        }
       }
     }
+  });
+
+  return tours.map((tour) => {
+    const mapped = withFoodTourUiMetadata(tour);
+    return {
+      ...mapped,
+      summary: {
+        ...mapped.summary,
+        stopCount: tour._count.stops
+      }
+    };
   });
 }
 
 export async function getUserFoodTour(userId: string, tourId: string) {
-  return prisma.foodTour.findFirst({
+  const tour = await prisma.foodTour.findFirst({
     where: {
       id: tourId,
       userId,
@@ -145,13 +186,15 @@ export async function getUserFoodTour(userId: string, tourId: string) {
     },
     include: foodTourDetailInclude
   });
+
+  return tour ? withFoodTourUiMetadata(tour) : null;
 }
 
 export async function cloneUserFoodTour(userId: string, tourId: string) {
   const existing = await getUserFoodTour(userId, tourId);
   if (!existing) return null;
 
-  return prisma.foodTour.create({
+  const cloned = await prisma.foodTour.create({
     data: {
       userId,
       cityId: existing.cityId,
@@ -186,6 +229,8 @@ export async function cloneUserFoodTour(userId: string, tourId: string) {
     },
     include: foodTourDetailInclude
   });
+
+  return withFoodTourUiMetadata(cloned);
 }
 
 export async function deleteUserFoodTour(userId: string, tourId: string) {
@@ -207,4 +252,105 @@ export async function deleteUserFoodTour(userId: string, tourId: string) {
       status: TourStatus.ARCHIVED
     }
   });
+}
+
+export async function updateUserFoodTourPlan(
+  userId: string,
+  tourId: string,
+  input: UpdateFoodTourPlanInput
+) {
+  const existing = await prisma.foodTour.findFirst({
+    where: {
+      id: tourId,
+      userId,
+      deletedAt: null
+    },
+    select: {
+      id: true,
+      cityId: true,
+      title: true,
+      startLatitude: true,
+      startLongitude: true,
+      transportMode: true
+    }
+  });
+
+  if (!existing) return null;
+
+  const restaurantIds = Array.from(new Set(input.stops.map((stop) => stop.restaurantId)));
+  const restaurants = await prisma.restaurant.findMany({
+    where: {
+      id: { in: restaurantIds },
+      cityId: existing.cityId,
+      isActive: true,
+      deletedAt: null
+    },
+    select: {
+      id: true,
+      latitude: true,
+      longitude: true
+    }
+  });
+  const restaurantById = new Map(restaurants.map((restaurant) => [restaurant.id, restaurant]));
+
+  if (restaurants.length !== restaurantIds.length) {
+    throw new Error("Invalid tour restaurant.");
+  }
+
+  let current: Coordinate = {
+    latitude: existing.startLatitude,
+    longitude: existing.startLongitude
+  };
+  let totalCost = 0;
+  let totalDistanceKm = 0;
+  let totalTravelMinutes = 0;
+
+  const normalizedStops = input.stops.map((stop, index) => {
+    const restaurant = restaurantById.get(stop.restaurantId);
+    if (!restaurant) throw new Error("Invalid tour restaurant.");
+
+    const distanceFromPreviousKm = haversineDistanceKm(current, restaurant);
+    const estimatedTravelMinutes =
+      index === 0 ? 0 : estimateTravelMinutes(distanceFromPreviousKm, routingTransportMode(existing.transportMode));
+    current = restaurant;
+    totalCost += stop.estimatedCost;
+    totalDistanceKm += distanceFromPreviousKm;
+    totalTravelMinutes += estimatedTravelMinutes;
+
+    return {
+      restaurantId: stop.restaurantId,
+      stopOrder: index + 1,
+      mealType: stop.mealType,
+      plannedArrivalAt: stop.plannedArrivalAt,
+      estimatedMealMinutes: stop.estimatedMealMinutes,
+      estimatedTravelMinutes,
+      distanceFromPreviousKm,
+      estimatedCost: stop.estimatedCost,
+      reason: stop.reason
+    };
+  });
+
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.foodTourStop.deleteMany({
+      where: {
+        foodTourId: existing.id
+      }
+    });
+
+    return tx.foodTour.update({
+      where: { id: existing.id },
+      data: {
+        title: input.title ?? existing.title,
+        totalCost,
+        totalDistanceKm: Number(totalDistanceKm.toFixed(2)),
+        totalTravelMinutes,
+        stops: {
+          create: normalizedStops
+        }
+      },
+      include: foodTourDetailInclude
+    });
+  });
+
+  return withFoodTourUiMetadata(updated);
 }

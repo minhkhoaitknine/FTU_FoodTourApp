@@ -17,8 +17,8 @@ const SmartFoodMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="grid min-h-[680px] place-items-center rounded-[28px] bg-white/90 p-6 shadow-panel">
-        <p className="font-bold text-clay-700">Loading map...</p>
+      <div className="grid min-h-[520px] place-items-center rounded-[28px] bg-surface-elevated/92 p-6 shadow-panel md:min-h-[680px]">
+        <p className="font-bold text-brand-strong">Loading map...</p>
       </div>
     )
   }
@@ -27,4 +27,3 @@ const SmartFoodMap = dynamic(
 export function SmartFoodMapDynamic(props: SmartFoodMapDynamicProps) {
   return <SmartFoodMap {...props} />;
 }
-

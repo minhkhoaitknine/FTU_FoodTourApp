@@ -4,8 +4,12 @@ import { RestaurantType } from "@prisma/client";
 import L from "leaflet";
 import { LocateFixed, MapPin, Navigation, Star } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+
+import { AppImage } from "@/components/common/app-image";
+import { Button, Input, Select } from "@/components/ui";
+import { resolveRestaurantImage } from "@/lib/assets/image-resolver";
 import { formatRating, formatVnd } from "@/lib/format";
 import { haversineDistanceKm, type Coordinate } from "@/services/routing/haversine";
 import type { RestaurantCard } from "@/services/restaurants/restaurant-service";
@@ -20,10 +24,12 @@ type SmartFoodMapProps = {
 };
 
 type UserLocation = Coordinate | null;
+const MY_LOCATION_ZOOM = 16;
+const RESTAURANT_FOCUS_ZOOM = 14;
 
 const markerIcon = L.divIcon({
   className: "",
-  html: '<div class="foodtour-marker">🍜</div>',
+  html: '<div class="foodtour-marker">FT</div>',
   iconSize: [34, 34],
   iconAnchor: [17, 30],
   popupAnchor: [0, -26]
@@ -31,7 +37,7 @@ const markerIcon = L.divIcon({
 
 const selectedMarkerIcon = L.divIcon({
   className: "",
-  html: '<div class="foodtour-marker foodtour-marker-selected">🍜</div>',
+  html: '<div class="foodtour-marker foodtour-marker-selected">FT</div>',
   iconSize: [40, 40],
   iconAnchor: [20, 34],
   popupAnchor: [0, -30]
@@ -44,9 +50,14 @@ const userIcon = L.divIcon({
   iconAnchor: [11, 11]
 });
 
-function MapFocus({ center }: { center: [number, number] }) {
+function MapFocus({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
-  map.setView(center, map.getZoom(), { animate: true });
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    map.setView(center, zoom, { animate: !prefersReducedMotion });
+  }, [center, map, zoom]);
+
   return null;
 }
 
@@ -68,7 +79,10 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
   const [type, setType] = useState("");
   const [selectedId, setSelectedId] = useState(restaurants[0]?.id ?? "");
   const [userLocation, setUserLocation] = useState<UserLocation>(null);
+  const [focusedCenter, setFocusedCenter] = useState<[number, number] | null>(null);
+  const [focusedZoom, setFocusedZoom] = useState(RESTAURANT_FOCUS_ZOOM);
   const [locationError, setLocationError] = useState("");
+  const [showRoutePreview, setShowRoutePreview] = useState(false);
 
   const filteredRestaurants = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -86,11 +100,14 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
   }, [city, query, restaurants, type]);
 
   const selectedRestaurant =
-    filteredRestaurants.find((restaurant) => restaurant.id === selectedId) ?? filteredRestaurants[0] ?? restaurants[0];
+    filteredRestaurants.find((restaurant) => restaurant.id === selectedId) ??
+    filteredRestaurants[0] ??
+    restaurants[0];
 
-  const center: [number, number] = selectedRestaurant
+  const fallbackCenter: [number, number] = selectedRestaurant
     ? restaurantCoordinate(selectedRestaurant)
     : [16.0544, 108.2022];
+  const center = focusedCenter ?? fallbackCenter;
 
   const routeRestaurants = filteredRestaurants.slice(0, 5);
   const routeLine = routeRestaurants.map(restaurantCoordinate);
@@ -98,6 +115,11 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
 
   function locateUser() {
     setLocationError("");
+    if (userLocation) {
+      setFocusedCenter([userLocation.latitude, userLocation.longitude]);
+      setFocusedZoom(MY_LOCATION_ZOOM);
+    }
+
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by this browser.");
       return;
@@ -105,10 +127,16 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const nextLocation: [number, number] = [
+          position.coords.latitude,
+          position.coords.longitude
+        ];
         setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
+          latitude: nextLocation[0],
+          longitude: nextLocation[1]
         });
+        setFocusedCenter(nextLocation);
+        setFocusedZoom(MY_LOCATION_ZOOM);
       },
       () => setLocationError("Could not access your location. Please allow location permission."),
       { enableHighAccuracy: true, timeout: 8000 }
@@ -116,104 +144,117 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[360px_1fr]">
+    <div className="grid gap-5 xl:grid-cols-[380px_1fr]">
       <aside className="space-y-4">
-        <section className="rounded-[28px] bg-white/90 p-4 shadow-panel">
+        <section className="rounded-[28px] bg-surface-elevated/92 p-4 shadow-panel">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay-700">
+              <p className="text-sm font-semibold uppercase text-brand-strong">
                 Smart Food Map
               </p>
-              <h1 className="mt-1 text-2xl font-bold">Find food places</h1>
+              <h1 className="mt-1 text-section-title text-content">Find food places</h1>
             </div>
-            <button
-              className="rounded-2xl bg-ink p-3 text-white transition hover:bg-stone-800"
+            <Button
+              aria-label="Use current location"
               onClick={locateUser}
+              size="icon"
               title="Use current location"
               type="button"
             >
-              <LocateFixed size={20} />
-            </button>
+              <LocateFixed aria-hidden="true" size={20} />
+            </Button>
           </div>
 
           <div className="mt-4 space-y-3">
-            <input
-              className="w-full rounded-2xl border border-clay-100 bg-white px-4 py-3 text-sm outline-none ring-clay-500 transition focus:ring-2"
+            <Input
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search restaurant, area or tag..."
               value={query}
             />
-            <div className="grid grid-cols-2 gap-3">
-              <select
-                className="rounded-2xl border border-clay-100 bg-white px-3 py-3 text-sm outline-none"
-                onChange={(event) => setCity(event.target.value)}
-                value={city}
-              >
+            <div className="grid gap-3 xs:grid-cols-2">
+              <Select onChange={(event) => setCity(event.target.value)} value={city}>
                 <option value="">All cities</option>
                 {cities.map((item) => (
                   <option key={item.id} value={item.name}>
                     {item.name}
                   </option>
                 ))}
-              </select>
-              <select
-                className="rounded-2xl border border-clay-100 bg-white px-3 py-3 text-sm outline-none"
-                onChange={(event) => setType(event.target.value)}
-                value={type}
-              >
+              </Select>
+              <Select onChange={(event) => setType(event.target.value)} value={type}>
                 <option value="">All types</option>
                 {Object.values(RestaurantType).map((item) => (
                   <option key={item} value={item}>
                     {item.replaceAll("_", " ")}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
 
           {locationError ? (
-            <p className="mt-3 rounded-2xl bg-red-50 p-3 text-sm text-red-700">{locationError}</p>
+            <p className="mt-3 rounded-app bg-danger-soft p-3 text-sm text-danger">{locationError}</p>
           ) : null}
         </section>
 
-        <section className="rounded-[28px] bg-white/90 p-4 shadow-panel">
+        <section className="rounded-[28px] bg-surface-elevated/92 p-4 shadow-panel">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold">{filteredRestaurants.length} places</h2>
-            <span className="text-xs font-semibold text-stone-500">List syncs with markers</span>
+            <h2 className="font-bold text-content">{filteredRestaurants.length} places</h2>
+            <span className="text-xs font-semibold text-content-subtle">Synced with markers</span>
           </div>
-          <div className="mt-4 max-h-[620px] space-y-3 overflow-y-auto pr-1">
+          <div className="mt-4 max-h-[420px] space-y-3 overflow-y-auto pr-1 xl:max-h-[620px]">
             {filteredRestaurants.length > 0 ? (
-              filteredRestaurants.map((restaurant) => (
-                <button
-                  className={`w-full rounded-2xl border p-3 text-left transition ${
-                    selectedRestaurant?.id === restaurant.id
-                      ? "border-clay-500 bg-clay-50"
-                      : "border-clay-100 bg-white hover:border-clay-300"
-                  }`}
-                  key={restaurant.id}
-                  onClick={() => setSelectedId(restaurant.id)}
-                  type="button"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-bold">{restaurant.name}</p>
-                      <p className="mt-1 flex items-center gap-1 text-xs text-stone-500">
-                        <MapPin size={13} />
-                        {restaurant.city.name}
-                      </p>
-                    </div>
-                    <span className="flex items-center gap-1 text-sm font-bold text-clay-700">
-                      <Star size={14} fill="currentColor" />
-                      {formatRating(restaurant.ratingAverage)}
+              filteredRestaurants.map((restaurant) => {
+                const image = resolveRestaurantImage({
+                  name: restaurant.name,
+                  imageAlt: restaurant.images[0]?.alt,
+                  imageUrl: restaurant.images[0]?.url,
+                  tags: restaurant.tags.map((tag) => tag.name)
+                });
+
+                return (
+                  <button
+                    className={`grid w-full grid-cols-[72px_1fr] gap-3 rounded-app border p-3 text-left transition ${
+                      selectedRestaurant?.id === restaurant.id
+                        ? "border-brand bg-brand-soft/70"
+                        : "border-line bg-surface-elevated hover:border-brand"
+                    }`}
+                    key={restaurant.id}
+                    onClick={() => {
+                      setSelectedId(restaurant.id);
+                      setFocusedCenter(restaurantCoordinate(restaurant));
+                      setFocusedZoom(RESTAURANT_FOCUS_ZOOM);
+                    }}
+                    type="button"
+                  >
+                    <AppImage
+                      alt={image.alt}
+                      className="aspect-square rounded-app-sm"
+                      sizes="72px"
+                      src={image.src}
+                    />
+                    <span className="min-w-0">
+                      <span className="flex items-start justify-between gap-3">
+                        <span>
+                          <span className="block font-bold text-content">{restaurant.name}</span>
+                          <span className="mt-1 flex items-center gap-1 text-xs text-content-muted">
+                            <MapPin aria-hidden="true" size={13} />
+                            {restaurant.city.name}
+                          </span>
+                        </span>
+                        <span className="flex items-center gap-1 text-sm font-bold text-brand-strong">
+                          <Star aria-hidden="true" fill="currentColor" size={14} />
+                          {formatRating(restaurant.ratingAverage)}
+                        </span>
+                      </span>
+                      <span className="mt-2 block text-xs font-semibold text-content-muted">
+                        {formatVnd(restaurant.minPrice)} - {formatVnd(restaurant.maxPrice)}
+                      </span>
                     </span>
-                  </div>
-                  <p className="mt-2 text-xs text-stone-600">
-                    {formatVnd(restaurant.minPrice)} - {formatVnd(restaurant.maxPrice)}
-                  </p>
-                </button>
-              ))
+                  </button>
+                );
+              })
             ) : (
-              <div className="rounded-2xl bg-clay-50 p-4 text-sm text-stone-600">
+              <div className="rounded-app bg-surface-muted p-4 text-sm text-content-muted">
                 No places match the current filters.
               </div>
             )}
@@ -222,14 +263,14 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
       </aside>
 
       <section className="space-y-4">
-        <div className="h-[680px] overflow-hidden rounded-[28px] border border-clay-100 bg-white shadow-panel">
-          <MapContainer center={center} className="h-full w-full" scrollWheelZoom zoom={13}>
-            <MapFocus center={center} />
+        <div className="h-[520px] overflow-hidden rounded-[28px] border border-line bg-surface-elevated shadow-panel md:h-[680px]">
+          <MapContainer center={center} className="h-full w-full" scrollWheelZoom zoom={focusedZoom}>
+            <MapFocus center={center} zoom={focusedZoom} />
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {routeLine.length >= 2 ? (
+            {showRoutePreview && routeLine.length >= 2 ? (
               <Polyline
                 pathOptions={{ color: "#1f6c3b", weight: 5, opacity: 0.72 }}
                 positions={routeLine}
@@ -238,7 +279,11 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
             {filteredRestaurants.map((restaurant) => (
               <Marker
                 eventHandlers={{
-                  click: () => setSelectedId(restaurant.id)
+                  click: () => {
+                    setSelectedId(restaurant.id);
+                    setFocusedCenter(restaurantCoordinate(restaurant));
+                    setFocusedZoom(RESTAURANT_FOCUS_ZOOM);
+                  }
                 }}
                 icon={selectedRestaurant?.id === restaurant.id ? selectedMarkerIcon : markerIcon}
                 key={restaurant.id}
@@ -251,7 +296,7 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
                     <p className="mt-1 text-sm">
                       {formatVnd(restaurant.minPrice)} - {formatVnd(restaurant.maxPrice)}
                     </p>
-                    <Link className="mt-2 inline-block font-bold text-clay-700" href={`/restaurants/${restaurant.slug}`}>
+                    <Link className="mt-2 inline-block font-bold text-brand-strong" href={`/restaurants/${restaurant.slug}`}>
                       View detail
                     </Link>
                   </div>
@@ -266,30 +311,38 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
           </MapContainer>
         </div>
 
-        <div className="grid gap-3 rounded-[28px] bg-white/90 p-4 text-sm shadow-panel md:grid-cols-3">
+        <div className="grid gap-3 rounded-[28px] bg-surface-elevated/92 p-4 text-sm shadow-panel md:grid-cols-3">
           <div>
-            <p className="text-stone-500">Route mode</p>
+            <p className="text-content-muted">Route preview</p>
             <p className="mt-1 flex items-center gap-2 text-lg font-bold">
-              <Navigation size={18} />
-              Haversine fallback
+              <Navigation aria-hidden="true" size={18} />
+              {showRoutePreview ? "Visible" : "Hidden"}
             </p>
           </div>
           <div>
-            <p className="text-stone-500">Preview stops</p>
+            <p className="text-content-muted">Preview stops</p>
             <p className="mt-1 text-lg font-bold">{routeRestaurants.length}</p>
           </div>
           <div>
-            <p className="text-stone-500">Estimated distance</p>
+            <p className="text-content-muted">Estimated distance</p>
             <p className="mt-1 text-lg font-bold">~ {totalDistanceKm} km</p>
           </div>
         </div>
 
-        <p className="rounded-2xl bg-clay-50 px-4 py-3 text-sm text-stone-600">
-          Route lines are estimated with Haversine distance for demo reliability. OSM tile attribution is shown on
-          the map.
-        </p>
+        <div className="flex flex-col gap-3 rounded-app bg-surface-muted px-4 py-3 text-sm text-content-muted md:flex-row md:items-center md:justify-between">
+          <p>
+            The green line is only an estimated preview connecting the first filtered stops. OSM tile attribution is
+            shown on the map.
+          </p>
+          <Button
+            onClick={() => setShowRoutePreview((value) => !value)}
+            type="button"
+            variant={showRoutePreview ? "outline" : "secondary"}
+          >
+            {showRoutePreview ? "Hide route line" : "Show route line"}
+          </Button>
+        </div>
       </section>
     </div>
   );
 }
-

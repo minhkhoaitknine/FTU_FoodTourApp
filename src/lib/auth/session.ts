@@ -1,5 +1,5 @@
 import { jwtVerify, SignJWT } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME, AUTH_SESSION_SECONDS } from "@/lib/auth/constants";
 
@@ -65,21 +65,38 @@ export async function setAuthCookie(response: NextResponse, session: AuthSession
     value: token,
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: await shouldUseSecureCookie(),
     path: "/",
     maxAge: AUTH_SESSION_SECONDS
   });
 }
 
-export function clearAuthCookie(response: NextResponse) {
+export async function clearAuthCookie(response: NextResponse) {
   response.cookies.set({
     name: AUTH_COOKIE_NAME,
     value: "",
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: await shouldUseSecureCookie(),
     path: "/",
     maxAge: 0
   });
 }
 
+async function shouldUseSecureCookie() {
+  if (process.env.NODE_ENV !== "production") return false;
+
+  const headerStore = await headers();
+  const host = headerStore.get("host") ?? "";
+  const forwardedProto = headerStore.get("x-forwarded-proto") ?? "";
+
+  if (
+    host.startsWith("localhost") ||
+    host.startsWith("127.0.0.1") ||
+    host.startsWith("[::1]")
+  ) {
+    return false;
+  }
+
+  return forwardedProto === "https" || process.env.VERCEL === "1";
+}

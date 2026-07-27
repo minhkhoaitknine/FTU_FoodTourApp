@@ -1,8 +1,9 @@
 "use client";
 
-import { Loader2, Star, Trash2 } from "lucide-react";
+import { Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { Button, Select, Textarea } from "@/components/ui";
 
 type ReviewFormProps = {
   restaurantId: string;
@@ -30,27 +31,35 @@ export function ReviewForm({ restaurantId, existingReview, isAuthenticated }: Re
     setError("");
     setIsSubmitting(true);
 
-    const response = await fetch(
-      existingReview ? `/api/reviews/${existingReview.id}` : `/api/restaurants/${restaurantId}/reviews`,
-      {
-        method: existingReview ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rating: Number(form.get("rating") ?? 5),
-          comment: String(form.get("comment") ?? "")
-        })
+    try {
+      const response = await fetch(
+        existingReview ? `/api/reviews/${existingReview.id}` : `/api/restaurants/${restaurantId}/reviews`,
+        {
+          method: existingReview ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rating: Number(form.get("rating") ?? 5),
+            comment: String(form.get("comment") ?? "")
+          })
+        }
+      );
+
+      const body = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        error?: string;
+      } | null;
+
+      if (!response.ok || !body?.ok) {
+        setError(body?.error ?? "Could not save review.");
+        return;
       }
-    );
 
-    const body = (await response.json()) as { ok: boolean; error?: string };
-    setIsSubmitting(false);
-
-    if (!response.ok || !body.ok) {
-      setError(body.error ?? "Could not save review.");
-      return;
+      router.refresh();
+    } catch {
+      setError("Network error while saving review.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    router.refresh();
   }
 
   async function deleteReview() {
@@ -59,26 +68,43 @@ export function ReviewForm({ restaurantId, existingReview, isAuthenticated }: Re
     if (!confirmed) return;
 
     setIsSubmitting(true);
-    const response = await fetch(`/api/reviews/${existingReview.id}`, { method: "DELETE" });
-    setIsSubmitting(false);
-    if (response.ok) router.refresh();
+    setError("");
+
+    try {
+      const response = await fetch(`/api/reviews/${existingReview.id}`, { method: "DELETE" });
+      if (response.ok) {
+        router.refresh();
+        return;
+      }
+
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      setError(body?.error ?? "Could not delete review.");
+    } catch {
+      setError("Network error while deleting review.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
-    <form className="rounded-[28px] bg-white/90 p-5 shadow-panel" onSubmit={submitReview}>
+    <form
+      aria-describedby={error ? "review-form-error" : undefined}
+      className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel"
+      onSubmit={submitReview}
+    >
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay-700">Your review</p>
-          <h2 className="mt-1 text-2xl font-bold">{existingReview ? "Edit review" : "Write a review"}</h2>
+          <p className="text-sm font-semibold uppercase text-brand-strong">Your review</p>
+          <h2 className="mt-1 text-section-title text-content">{existingReview ? "Edit review" : "Write a review"}</h2>
         </div>
-        <Star className="text-clay-700" fill="currentColor" />
+        <Star aria-hidden="true" className="text-brand" fill="currentColor" />
       </div>
 
       <div className="mt-4 grid gap-3">
         <label>
-          <span className="text-sm font-bold text-stone-700">Rating</span>
-          <select
-            className="mt-2 w-full rounded-2xl border border-clay-100 px-4 py-3 text-sm outline-none"
+          <span className="text-sm font-bold text-content">Rating</span>
+          <Select
+            className="mt-2"
             defaultValue={existingReview?.rating ?? 5}
             name="rating"
           >
@@ -87,13 +113,13 @@ export function ReviewForm({ restaurantId, existingReview, isAuthenticated }: Re
                 {rating} stars
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label>
-          <span className="text-sm font-bold text-stone-700">Comment</span>
-          <textarea
-            className="mt-2 min-h-28 w-full rounded-2xl border border-clay-100 px-4 py-3 text-sm outline-none"
+          <span className="text-sm font-bold text-content">Comment</span>
+          <Textarea
+            className="mt-2"
             defaultValue={existingReview?.comment ?? ""}
             maxLength={800}
             minLength={2}
@@ -104,30 +130,32 @@ export function ReviewForm({ restaurantId, existingReview, isAuthenticated }: Re
         </label>
       </div>
 
-      {error ? <p className="mt-3 rounded-2xl bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
+      {error ? (
+        <p className="mt-3 rounded-app bg-danger-soft p-3 text-sm text-danger" id="review-form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          className="inline-flex items-center gap-2 rounded-2xl bg-ink px-4 py-3 text-sm font-bold text-white disabled:opacity-70"
-          disabled={isSubmitting}
+        <Button
+          isLoading={isSubmitting}
+          loadingLabel="Saving"
           type="submit"
         >
-          {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : null}
           {existingReview ? "Save changes" : "Post review"}
-        </button>
+        </Button>
         {existingReview ? (
-          <button
-            className="inline-flex items-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700 disabled:opacity-70"
+          <Button
             disabled={isSubmitting}
             onClick={deleteReview}
             type="button"
+            variant="danger"
           >
-            <Trash2 size={16} />
+            <Trash2 aria-hidden="true" size={16} />
             Delete
-          </button>
+          </Button>
         ) : null}
       </div>
     </form>
   );
 }
-

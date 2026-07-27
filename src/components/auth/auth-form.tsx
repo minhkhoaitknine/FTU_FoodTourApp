@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { Button, Input } from "@/components/ui";
 
 type AuthFormMode = "login" | "register";
 
@@ -40,23 +40,31 @@ export function AuthForm({ mode }: AuthFormProps) {
             password: String(form.get("password") ?? "")
           };
 
-    const response = await fetch(`/api/auth/${mode}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const response = await fetch(`/api/auth/${mode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-    const result = (await response.json()) as { ok: boolean; error?: string };
-    setIsSubmitting(false);
+      const result = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        error?: string;
+      } | null;
 
-    if (!response.ok || !result.ok) {
-      setError(result.error ?? "Authentication failed.");
-      return;
+      if (!response.ok || !result?.ok) {
+        setError(result?.error ?? "Authentication failed.");
+        return;
+      }
+
+      const nextPath = searchParams.get("next");
+      router.push(nextPath && nextPath.startsWith("/") ? nextPath : "/dashboard");
+      router.refresh();
+    } catch {
+      setError("Network error while authenticating.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const nextPath = searchParams.get("next");
-    router.push(nextPath && nextPath.startsWith("/") ? nextPath : "/dashboard");
-    router.refresh();
   }
 
   function fillDemoAccount(email: string) {
@@ -67,12 +75,13 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <form className="space-y-4" onSubmit={submitForm}>
+    <form aria-describedby={error ? "auth-form-error" : undefined} className="space-y-4" onSubmit={submitForm}>
       {mode === "register" ? (
         <label className="block">
-          <span className="text-sm font-semibold text-stone-700">Full name</span>
-          <input
-            className="mt-2 w-full rounded-2xl border border-clay-100 bg-white px-4 py-3 outline-none ring-clay-500 transition focus:ring-2"
+          <span className="text-sm font-semibold text-content">Full name</span>
+          <Input
+            autoComplete="name"
+            className="mt-2"
             name="fullName"
             placeholder="Nguyen An"
             required
@@ -82,9 +91,10 @@ export function AuthForm({ mode }: AuthFormProps) {
       ) : null}
 
       <label className="block">
-        <span className="text-sm font-semibold text-stone-700">Email</span>
-        <input
-          className="mt-2 w-full rounded-2xl border border-clay-100 bg-white px-4 py-3 outline-none ring-clay-500 transition focus:ring-2"
+        <span className="text-sm font-semibold text-content">Email</span>
+        <Input
+          autoComplete="email"
+          className="mt-2"
           name="email"
           placeholder="user@foodtour.demo"
           required
@@ -93,9 +103,10 @@ export function AuthForm({ mode }: AuthFormProps) {
       </label>
 
       <label className="block">
-        <span className="text-sm font-semibold text-stone-700">Password</span>
-        <input
-          className="mt-2 w-full rounded-2xl border border-clay-100 bg-white px-4 py-3 outline-none ring-clay-500 transition focus:ring-2"
+        <span className="text-sm font-semibold text-content">Password</span>
+        <Input
+          autoComplete={mode === "register" ? "new-password" : "current-password"}
+          className="mt-2"
           minLength={mode === "register" ? 8 : 1}
           name="password"
           placeholder="FoodTour@123"
@@ -105,29 +116,33 @@ export function AuthForm({ mode }: AuthFormProps) {
       </label>
 
       {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div
+          className="rounded-app border border-danger/25 bg-danger-soft px-4 py-3 text-sm text-danger"
+          id="auth-form-error"
+          role="alert"
+        >
           {error}
         </div>
       ) : null}
 
-      <button
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-ink px-4 py-3 font-bold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={isSubmitting}
+      <Button
+        fullWidth
+        isLoading={isSubmitting}
+        loadingLabel={mode === "register" ? "Creating account" : "Logging in"}
         type="submit"
       >
-        {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : null}
         {mode === "register" ? "Create account" : "Login"}
-      </button>
+      </Button>
 
       {mode === "login" ? (
-        <div className="space-y-2 rounded-2xl bg-clay-50 p-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-clay-700">
+        <div className="space-y-2 rounded-app bg-brand-soft p-3">
+          <p className="text-xs font-semibold uppercase text-brand-strong">
             Demo accounts
           </p>
           <div className="grid grid-cols-3 gap-2">
             {demoAccounts.map((account) => (
               <button
-                className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-stone-700 shadow-sm transition hover:text-clay-700"
+                className="min-h-11 rounded-app-sm bg-surface-elevated px-3 py-2 text-sm font-semibold text-content shadow-sm transition hover:text-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-success/20"
                 key={account.email}
                 onClick={() => fillDemoAccount(account.email)}
                 type="button"
@@ -141,4 +156,3 @@ export function AuthForm({ mode }: AuthFormProps) {
     </form>
   );
 }
-

@@ -3,6 +3,7 @@
 import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui";
 
 type TourActionsProps = {
   tourId: string;
@@ -11,15 +12,30 @@ type TourActionsProps = {
 export function TourActions({ tourId }: TourActionsProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   async function cloneTour() {
     setIsSubmitting(true);
-    const response = await fetch(`/api/food-tours/${tourId}/clone`, { method: "POST" });
-    const body = (await response.json()) as { ok: boolean; tour?: { id: string } };
-    setIsSubmitting(false);
-    if (response.ok && body.ok && body.tour) {
-      router.push(`/tours/${body.tour.id}`);
-      router.refresh();
+    setError("");
+
+    try {
+      const response = await fetch(`/api/food-tours/${tourId}/clone`, { method: "POST" });
+      const body = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        error?: string;
+        tour?: { id: string };
+      } | null;
+      if (response.ok && body?.ok && body.tour) {
+        router.push(`/tours/${body.tour.id}`);
+        router.refresh();
+        return;
+      }
+
+      setError(body?.error ?? "Could not clone this tour.");
+    } catch {
+      setError("Network error while cloning this tour.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -28,35 +44,50 @@ export function TourActions({ tourId }: TourActionsProps) {
     if (!confirmed) return;
 
     setIsSubmitting(true);
-    const response = await fetch(`/api/food-tours/${tourId}`, { method: "DELETE" });
-    setIsSubmitting(false);
-    if (response.ok) {
-      router.push("/tours");
-      router.refresh();
+    setError("");
+
+    try {
+      const response = await fetch(`/api/food-tours/${tourId}`, { method: "DELETE" });
+      if (response.ok) {
+        router.push("/tours");
+        router.refresh();
+        return;
+      }
+
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      setError(body?.error ?? "Could not delete this tour.");
+    } catch {
+      setError("Network error while deleting this tour.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <button
-        className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-clay-700 shadow-sm disabled:opacity-70"
-        disabled={isSubmitting}
-        onClick={cloneTour}
-        type="button"
-      >
-        <Copy size={16} />
-        Clone
-      </button>
-      <button
-        className="inline-flex items-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700 shadow-sm disabled:opacity-70"
-        disabled={isSubmitting}
-        onClick={deleteTour}
-        type="button"
-      >
-        <Trash2 size={16} />
-        Delete
-      </button>
+    <div>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          disabled={isSubmitting}
+          isLoading={isSubmitting}
+          loadingLabel="Working"
+          onClick={cloneTour}
+          type="button"
+          variant="outline"
+        >
+          <Copy aria-hidden="true" size={16} />
+          Clone
+        </Button>
+        <Button
+          disabled={isSubmitting}
+          onClick={deleteTour}
+          type="button"
+          variant="danger"
+        >
+          <Trash2 aria-hidden="true" size={16} />
+          Delete
+        </Button>
+      </div>
+      {error ? <p className="mt-2 text-sm font-semibold text-danger">{error}</p> : null}
     </div>
   );
 }
-

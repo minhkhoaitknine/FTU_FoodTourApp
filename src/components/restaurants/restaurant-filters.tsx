@@ -1,5 +1,8 @@
 import { PriceRange, RestaurantType } from "@prisma/client";
 import { Search } from "lucide-react";
+import Link from "next/link";
+
+import { Button, Input, Select } from "@/components/ui";
 
 type RestaurantFiltersProps = {
   cities: Array<{
@@ -20,13 +23,14 @@ type RestaurantFiltersProps = {
 
 export function RestaurantFilters({ cities, defaults }: RestaurantFiltersProps) {
   return (
-    <form className="grid gap-3 rounded-[24px] bg-white/90 p-4 shadow-panel md:grid-cols-2 xl:grid-cols-7">
+    <form className="rounded-[28px] bg-surface-elevated/92 p-4 shadow-panel">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
       <label className="md:col-span-2 xl:col-span-2">
-        <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Search</span>
-        <div className="mt-2 flex items-center gap-2 rounded-2xl border border-clay-100 bg-white px-3">
-          <Search size={17} className="text-stone-400" />
-          <input
-            className="min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"
+        <span className="text-xs font-bold uppercase text-content-subtle">Search</span>
+        <div className="mt-2 flex items-center gap-2 rounded-app border border-line bg-surface-elevated px-3">
+          <Search size={17} className="text-content-subtle" />
+          <Input
+            className="min-w-0 flex-1 border-0 bg-transparent px-0 py-3 text-sm shadow-none focus:border-transparent focus:ring-0"
             defaultValue={defaults.q}
             name="q"
             placeholder="Pho, seafood, coffee..."
@@ -35,9 +39,9 @@ export function RestaurantFilters({ cities, defaults }: RestaurantFiltersProps) 
       </label>
 
       <label>
-        <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">City</span>
-        <select
-          className="mt-2 w-full rounded-2xl border border-clay-100 bg-white px-3 py-3 text-sm outline-none"
+        <span className="text-xs font-bold uppercase text-content-subtle">City</span>
+        <Select
+          className="mt-2"
           defaultValue={defaults.city}
           name="city"
         >
@@ -47,13 +51,13 @@ export function RestaurantFilters({ cities, defaults }: RestaurantFiltersProps) 
               {city.name}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <label>
-        <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Type</span>
-        <select
-          className="mt-2 w-full rounded-2xl border border-clay-100 bg-white px-3 py-3 text-sm outline-none"
+        <span className="text-xs font-bold uppercase text-content-subtle">Type</span>
+        <Select
+          className="mt-2"
           defaultValue={defaults.type}
           name="type"
         >
@@ -63,13 +67,13 @@ export function RestaurantFilters({ cities, defaults }: RestaurantFiltersProps) 
               {type.replaceAll("_", " ")}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <label>
-        <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Price</span>
-        <select
-          className="mt-2 w-full rounded-2xl border border-clay-100 bg-white px-3 py-3 text-sm outline-none"
+        <span className="text-xs font-bold uppercase text-content-subtle">Price</span>
+        <Select
+          className="mt-2"
           defaultValue={defaults.priceRange}
           name="priceRange"
         >
@@ -79,39 +83,34 @@ export function RestaurantFilters({ cities, defaults }: RestaurantFiltersProps) 
               {range}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <label>
-        <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Rating</span>
-        <select
-          className="mt-2 w-full rounded-2xl border border-clay-100 bg-white px-3 py-3 text-sm outline-none"
+        <span className="text-xs font-bold uppercase text-content-subtle">Rating</span>
+        <Select
+          className="mt-2"
           defaultValue={defaults.minRating}
           name="minRating"
         >
           <option value="">Any</option>
           <option value="4">4.0+</option>
           <option value="4.5">4.5+</option>
-        </select>
+        </Select>
       </label>
 
       <div className="flex items-end">
-        <button className="w-full rounded-2xl bg-ink px-4 py-3 text-sm font-bold text-white" type="submit">
+        <Button fullWidth type="submit">
           Apply
-        </button>
+        </Button>
+      </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 md:col-span-2 xl:col-span-7">
-        <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
-          <input defaultChecked={defaults.vegetarian === "true"} name="vegetarian" type="checkbox" value="true" />
-          Vegetarian friendly
-        </label>
-        <label className="flex items-center gap-2 text-sm font-semibold text-stone-700">
-          <input defaultChecked={defaults.spicy === "true"} name="spicy" type="checkbox" value="true" />
-          Spicy food
-        </label>
+      <div className="mt-3 flex justify-end">
+        <Link className="text-sm font-bold text-brand-strong" href="/restaurants">
+          Clear filters
+        </Link>
       </div>
     </form>
   );
 }
-

@@ -4,12 +4,41 @@ export async function listFavorites(userId: string) {
   return prisma.favorite.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      userId: true,
+      restaurantId: true,
+      createdAt: true,
       restaurant: {
-        include: {
-          city: true,
-          images: { orderBy: { sortOrder: "asc" }, take: 1 },
-          tags: { orderBy: { name: "asc" } }
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          minPrice: true,
+          maxPrice: true,
+          ratingAverage: true,
+          averageMealMinutes: true,
+          city: {
+            select: {
+              id: true,
+              name: true,
+              region: true
+            }
+          },
+          images: {
+            orderBy: { sortOrder: "asc" },
+            take: 1,
+            select: {
+              url: true,
+              alt: true
+            }
+          },
+          tags: {
+            orderBy: { name: "asc" },
+            select: {
+              name: true
+            }
+          }
         }
       }
     }
@@ -78,4 +107,3 @@ export async function removeFavorite(userId: string, restaurantId: string) {
     }
   });
 }
-

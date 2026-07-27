@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui";
 
 export default function Error({
   error,
@@ -10,26 +11,22 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <main className="grid min-h-screen place-items-center p-6 text-ink">
-      <section className="w-full max-w-xl rounded-[24px] bg-white/90 p-6 shadow-panel">
-        <div className="flex items-start gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-700">
-            <AlertTriangle size={23} />
+    <main className="grid min-h-screen place-items-center bg-canvas p-6 text-content">
+      <section className="w-full max-w-xl rounded-[24px] bg-surface-elevated/90 p-6 shadow-panel">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-app bg-danger-soft text-danger">
+            <AlertTriangle aria-hidden="true" size={23} />
           </div>
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-red-700">Runtime error</p>
-            <h1 className="mt-2 text-3xl font-bold">This screen could not load</h1>
-            <p className="mt-2 text-sm leading-6 text-stone-600">
+            <p className="text-sm font-semibold uppercase text-danger">Runtime error</p>
+            <h1 className="mt-2 text-page-title">This screen could not load</h1>
+            <p className="mt-2 text-sm leading-6 text-content-muted">
               {error.message || "The application hit an unexpected state while rendering this page."}
             </p>
-            <button
-              className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-ink px-4 py-3 text-sm font-bold text-white"
-              onClick={reset}
-              type="button"
-            >
-              <RefreshCw size={17} />
+            <Button className="mt-5" onClick={reset} type="button">
+              <RefreshCw aria-hidden="true" size={17} />
               Retry
-            </button>
+            </Button>
           </div>
         </div>
       </section>
