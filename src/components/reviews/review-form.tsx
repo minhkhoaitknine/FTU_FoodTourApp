@@ -89,7 +89,7 @@ export function ReviewForm({ restaurantId, existingReview, isAuthenticated }: Re
   return (
     <form
       aria-describedby={error ? "review-form-error" : undefined}
-      className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel"
+      className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel"
       onSubmit={submitReview}
     >
       <div className="flex items-center justify-between gap-3">

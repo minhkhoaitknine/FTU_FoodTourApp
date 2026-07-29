@@ -9,6 +9,32 @@ const optionalText = (max: number) =>
     .optional()
     .transform((value) => (value === "" ? undefined : value));
 
+const optionalImageSource = optionalText(1500000).refine(
+  (value) =>
+    !value ||
+    value.startsWith("/") ||
+    value.startsWith("https://") ||
+    value.startsWith("http://") ||
+    /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(value),
+  "Image must be an uploaded image, a public path, or an http(s) URL."
+);
+
+const adminTagSchema = z.string().trim().min(1).max(60);
+
+const adminMenuItemSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  description: z
+    .string()
+    .trim()
+    .max(300)
+    .optional()
+    .transform((value) => value || "Admin-created demo menu item."),
+  price: z.coerce.number().int().min(0).max(10000000),
+  isVegetarian: z.boolean().optional().default(false),
+  isSpicy: z.boolean().optional().default(false),
+  allergens: z.array(adminTagSchema).max(8).optional().default([])
+});
+
 export const adminListQuerySchema = z.object({
   q: z.string().trim().max(100).optional().default(""),
   page: z.coerce.number().int().min(1).optional().default(1),
@@ -22,10 +48,14 @@ export const adminReviewListQuerySchema = adminListQuerySchema.extend({
 export const adminCreateRestaurantSchema = z.object({
   cityId: z.string().cuid(),
   name: z.string().trim().min(2).max(120),
-  description: z.string().trim().min(10).max(600),
+  description: z.string().trim().min(3).max(600),
   culturalStory: z.string().trim().min(10).max(800).default("Demo cultural story for presentation."),
   eatingTips: z.string().trim().min(5).max(500).default("Arrive outside peak hours and confirm prices before ordering."),
   address: z.string().trim().min(5).max(220),
+  imageUrl: optionalImageSource,
+  imageAlt: optionalText(180),
+  tags: z.array(adminTagSchema).max(12).optional(),
+  menuItems: z.array(adminMenuItemSchema).min(1).max(12).optional(),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
   type: z.nativeEnum(RestaurantType),
@@ -45,6 +75,10 @@ export const adminUpdateRestaurantSchema = z
     culturalStory: optionalText(800),
     eatingTips: optionalText(500),
     address: optionalText(220),
+    imageUrl: optionalImageSource,
+    imageAlt: optionalText(180),
+    tags: z.array(adminTagSchema).max(12).optional(),
+    menuItems: z.array(adminMenuItemSchema).min(1).max(12).optional(),
     latitude: z.coerce.number().min(-90).max(90).optional(),
     longitude: z.coerce.number().min(-180).max(180).optional(),
     type: z.nativeEnum(RestaurantType).optional(),

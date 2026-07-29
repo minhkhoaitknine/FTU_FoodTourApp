@@ -173,7 +173,7 @@ export function TourPlanEditor({
   }
 
   return (
-    <section className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel md:p-6">
+    <section className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel md:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase text-brand-strong">Manual planning</p>

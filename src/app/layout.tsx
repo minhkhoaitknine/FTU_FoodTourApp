@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BackgroundMusicPlayer } from "@/components/music/background-music-player";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
@@ -24,6 +25,10 @@ export const metadata: Metadata = {
   },
   description: "Plan local Vietnamese food tours with budget, timing and map-aware recommendations.",
   applicationName: "FoodTour Generator",
+  icons: {
+    icon: "/images/brand/foodtour-logo.png",
+    apple: "/images/brand/foodtour-logo.png"
+  },
   keywords: ["Vietnam food tour", "travel food planner", "Next.js", "Prisma"],
   metadataBase: getMetadataBase()
 };
@@ -35,7 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html data-scroll-behavior="smooth" lang="vi" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        {children}
+        <BackgroundMusicPlayer />
+      </body>
     </html>
   );
 }

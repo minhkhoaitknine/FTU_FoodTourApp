@@ -16,7 +16,7 @@ type DashboardRoutePreviewProps = {
 
 export function DashboardRoutePreview({ points }: DashboardRoutePreviewProps) {
   return (
-    <section className="rounded-[28px] bg-surface-elevated/90 p-5 shadow-panel">
+    <section className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm text-content-muted">Map preview</p>

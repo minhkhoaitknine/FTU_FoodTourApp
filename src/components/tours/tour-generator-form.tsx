@@ -163,7 +163,7 @@ export function TourGeneratorForm({ cities }: TourGeneratorFormProps) {
     <div className="grid gap-5 xl:grid-cols-[430px_1fr]">
       <form
         aria-busy={isSubmitting}
-        className="space-y-4 rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel"
+        className="space-y-4 rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel"
         onSubmit={submitForm}
       >
         <div>
@@ -395,7 +395,7 @@ function TourResultPanel({
   result: SavedTour | null;
 }) {
   return (
-    <section className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel">
+    <section className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
       {isLoading ? <GeneratingState /> : result ? <GeneratedResult result={result} /> : <EmptyResult />}
     </section>
   );

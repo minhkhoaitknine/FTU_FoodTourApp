@@ -37,7 +37,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
   return (
     <AppShell currentCityName={tour.city.name}>
       <PageContainer size="6xl">
-        <header className="overflow-hidden rounded-[28px] bg-surface-elevated/92 shadow-panel">
+        <header className="overflow-hidden rounded-[28px] bg-surface-elevated/[0.65] shadow-panel">
           <AppImage
             alt={cityImage.alt}
             className="h-52 rounded-b-none"
@@ -98,7 +98,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
           tourId={tour.id}
         />
 
-        <section className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel md:p-6">
+        <section className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel md:p-6">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase text-brand-strong">Itinerary</p>

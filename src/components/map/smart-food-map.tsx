@@ -2,16 +2,16 @@
 
 import { RestaurantType } from "@prisma/client";
 import L from "leaflet";
-import { LocateFixed, MapPin, Navigation, Star } from "lucide-react";
+import { LocateFixed, MapPin, Star } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import { AppImage } from "@/components/common/app-image";
 import { Button, Input, Select } from "@/components/ui";
 import { resolveRestaurantImage } from "@/lib/assets/image-resolver";
 import { formatRating, formatVnd } from "@/lib/format";
-import { haversineDistanceKm, type Coordinate } from "@/services/routing/haversine";
+import type { Coordinate } from "@/services/routing/haversine";
 import type { RestaurantCard } from "@/services/restaurants/restaurant-service";
 
 type SmartFoodMapProps = {
@@ -65,14 +65,6 @@ function restaurantCoordinate(restaurant: RestaurantCard): [number, number] {
   return [restaurant.latitude, restaurant.longitude];
 }
 
-function routeDistance(restaurants: RestaurantCard[]) {
-  let total = 0;
-  for (let index = 1; index < restaurants.length; index += 1) {
-    total += haversineDistanceKm(restaurants[index - 1], restaurants[index]);
-  }
-  return Number(total.toFixed(2));
-}
-
 export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
   const [query, setQuery] = useState("");
   const [city, setCity] = useState("");
@@ -82,7 +74,6 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
   const [focusedCenter, setFocusedCenter] = useState<[number, number] | null>(null);
   const [focusedZoom, setFocusedZoom] = useState(RESTAURANT_FOCUS_ZOOM);
   const [locationError, setLocationError] = useState("");
-  const [showRoutePreview, setShowRoutePreview] = useState(false);
 
   const filteredRestaurants = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -108,10 +99,6 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
     ? restaurantCoordinate(selectedRestaurant)
     : [16.0544, 108.2022];
   const center = focusedCenter ?? fallbackCenter;
-
-  const routeRestaurants = filteredRestaurants.slice(0, 5);
-  const routeLine = routeRestaurants.map(restaurantCoordinate);
-  const totalDistanceKm = routeDistance(routeRestaurants);
 
   function locateUser() {
     setLocationError("");
@@ -146,7 +133,7 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
   return (
     <div className="grid gap-5 xl:grid-cols-[380px_1fr]">
       <aside className="space-y-4">
-        <section className="rounded-[28px] bg-surface-elevated/92 p-4 shadow-panel">
+        <section className="rounded-[28px] bg-surface-elevated/[0.65] p-4 shadow-panel">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase text-brand-strong">
@@ -196,7 +183,7 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
           ) : null}
         </section>
 
-        <section className="rounded-[28px] bg-surface-elevated/92 p-4 shadow-panel">
+        <section className="rounded-[28px] bg-surface-elevated/[0.65] p-4 shadow-panel">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-content">{filteredRestaurants.length} places</h2>
             <span className="text-xs font-semibold text-content-subtle">Synced with markers</span>
@@ -270,12 +257,6 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {showRoutePreview && routeLine.length >= 2 ? (
-              <Polyline
-                pathOptions={{ color: "#1f6c3b", weight: 5, opacity: 0.72 }}
-                positions={routeLine}
-              />
-            ) : null}
             {filteredRestaurants.map((restaurant) => (
               <Marker
                 eventHandlers={{
@@ -311,36 +292,15 @@ export function SmartFoodMap({ restaurants, cities }: SmartFoodMapProps) {
           </MapContainer>
         </div>
 
-        <div className="grid gap-3 rounded-[28px] bg-surface-elevated/92 p-4 text-sm shadow-panel md:grid-cols-3">
+        <div className="grid gap-3 rounded-[28px] bg-surface-elevated/[0.65] p-4 text-sm shadow-panel md:grid-cols-2">
           <div>
-            <p className="text-content-muted">Route preview</p>
-            <p className="mt-1 flex items-center gap-2 text-lg font-bold">
-              <Navigation aria-hidden="true" size={18} />
-              {showRoutePreview ? "Visible" : "Hidden"}
-            </p>
+            <p className="text-content-muted">Visible places</p>
+            <p className="mt-1 text-lg font-bold">{filteredRestaurants.length}</p>
           </div>
           <div>
-            <p className="text-content-muted">Preview stops</p>
-            <p className="mt-1 text-lg font-bold">{routeRestaurants.length}</p>
+            <p className="text-content-muted">Selected place</p>
+            <p className="mt-1 truncate text-lg font-bold">{selectedRestaurant?.name ?? "None"}</p>
           </div>
-          <div>
-            <p className="text-content-muted">Estimated distance</p>
-            <p className="mt-1 text-lg font-bold">~ {totalDistanceKm} km</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 rounded-app bg-surface-muted px-4 py-3 text-sm text-content-muted md:flex-row md:items-center md:justify-between">
-          <p>
-            The green line is only an estimated preview connecting the first filtered stops. OSM tile attribution is
-            shown on the map.
-          </p>
-          <Button
-            onClick={() => setShowRoutePreview((value) => !value)}
-            type="button"
-            variant={showRoutePreview ? "outline" : "secondary"}
-          >
-            {showRoutePreview ? "Hide route line" : "Show route line"}
-          </Button>
         </div>
       </section>
     </div>

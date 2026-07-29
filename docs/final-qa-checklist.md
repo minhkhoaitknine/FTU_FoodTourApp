@@ -33,7 +33,7 @@ Expected result:
 7. Save the generated tour, then open `/dashboard`; confirm the mini map focuses on the latest saved tour route.
 8. Open `/tours` and a tour detail page.
 9. Favorite a restaurant, then confirm it appears in `/favorites`.
-10. Open `/soundscape`; confirm seeded soundscape metadata appears.
+10. Confirm the fixed background music box appears, can toggle sound and can adjust volume.
 11. Sign in with `admin@foodtour.demo`; open `/admin`.
 12. Confirm Admin Panel has a clear Back to Dashboard action.
 13. Hide/restore a restaurant, lock/unlock a non-admin user and moderate a review.
@@ -42,7 +42,7 @@ Expected result:
 ## Demo Integrity
 
 - Restaurant/demo data must be described as fictitious.
-- Do not present soundscape placeholder URLs as licensed production audio.
+- Do not add fake music placeholders; use only real files in the project `music` folder.
 - Do not claim the recommendation engine uses LLM/AI; it is rule-based.
 - Keep OpenStreetMap attribution visible.
 - Do not expose real secrets in screenshots or repository files.

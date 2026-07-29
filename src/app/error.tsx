@@ -12,7 +12,7 @@ export default function Error({
 }) {
   return (
     <main className="grid min-h-screen place-items-center bg-canvas p-6 text-content">
-      <section className="w-full max-w-xl rounded-[24px] bg-surface-elevated/90 p-6 shadow-panel">
+      <section className="w-full max-w-xl rounded-[24px] bg-surface-elevated/[0.65] p-6 shadow-panel">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-app bg-danger-soft text-danger">
             <AlertTriangle aria-hidden="true" size={23} />

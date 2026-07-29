@@ -48,7 +48,7 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
   return (
     <AppShell currentCityNames={shellCityNames}>
       <PageContainer>
-        <header className="rounded-[28px] bg-surface-elevated/90 p-5 shadow-panel">
+        <header className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase text-brand-strong">
@@ -78,7 +78,7 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
           }}
         />
 
-        <div className="rounded-[24px] bg-surface-elevated/86 px-4 py-3 text-sm font-semibold text-content-muted shadow-panel">
+        <div className="rounded-[24px] bg-surface-elevated/[0.65] px-4 py-3 text-sm font-semibold text-content-muted shadow-panel">
           Showing {items.length} of {pagination.total} restaurants. Page {pagination.page} of {pagination.totalPages}.
         </div>
 
@@ -91,7 +91,7 @@ export default async function RestaurantsPage({ searchParams }: RestaurantsPageP
             ))}
           </div>
         ) : (
-          <div className="rounded-[28px] bg-surface-elevated/90 p-8 text-center shadow-panel">
+          <div className="rounded-[28px] bg-surface-elevated/[0.65] p-8 text-center shadow-panel">
             <h2 className="text-section-title text-content">No restaurants found</h2>
             <p className="mt-2 text-sm text-content-muted">Try clearing filters or choosing another city.</p>
           </div>
@@ -123,7 +123,7 @@ function RestaurantPagination({
   return (
     <nav
       aria-label="Restaurant pages"
-      className="flex flex-col gap-3 rounded-[24px] bg-surface-elevated/88 px-4 py-3 shadow-panel md:flex-row md:items-center md:justify-between"
+      className="flex flex-col gap-3 rounded-[24px] bg-surface-elevated/[0.65] px-4 py-3 shadow-panel md:flex-row md:items-center md:justify-between"
     >
       <p className="text-sm font-semibold text-content-muted">
         Page {pagination.page} of {pagination.totalPages}

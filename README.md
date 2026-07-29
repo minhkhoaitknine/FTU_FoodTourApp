@@ -124,7 +124,7 @@ npm.cmd run db:deploy
 - Tour generator, saved tour history and tour details.
 - Restaurant explorer, restaurant detail, reviews and favorites.
 - Smart food map with OpenStreetMap and browser geolocation.
-- Soundscape player for seeded city ambience metadata.
+- Shared background music player that reads real files from the project `music` folder.
 - Admin Panel at `/admin` for admin-only demo data operations.
 
 ## Demo Data Policy
@@ -166,7 +166,7 @@ Seed output target:
 - 100 demo users.
 - 300 demo reviews.
 - 40 demo food tours.
-- 10 soundscape placeholders.
+- Background music files from the project `music` folder.
 
 Do not use the demo password or demo data policy in production.
 
@@ -344,12 +344,11 @@ Behavior:
 - Clone creates a new saved copy.
 - Delete uses soft delete by setting `deletedAt` and archiving the tour.
 
-## Reviews, Favorites and Soundscape
+## Reviews, Favorites and Background Music
 
 Implemented pages:
 
 - `/favorites`
-- `/soundscape`
 
 Implemented APIs:
 
@@ -359,7 +358,8 @@ Implemented APIs:
 - `POST /api/restaurants/:id/reviews`
 - `PATCH /api/reviews/:id`
 - `DELETE /api/reviews/:id`
-- `GET /api/soundscapes`
+- `GET /api/background-music`
+- `GET /api/background-music/:track`
 
 Behavior:
 
@@ -368,8 +368,9 @@ Behavior:
 - Signed-in users can create or update one review per restaurant.
 - Signed-in users can delete their own review.
 - Restaurant average rating and rating count are recalculated server-side.
-- Soundscape player reads active sample metadata from the database.
-- Current soundscape audio URLs are placeholders and should be replaced with licensed assets before production.
+- The shared background music player is mounted once in the root layout.
+- Music state is persisted in the browser: enabled/disabled and volume.
+- Tracks are discovered from real audio files in the project `music` folder and streamed through API routes.
 
 ## Admin Module
 

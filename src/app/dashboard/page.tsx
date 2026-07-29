@@ -15,6 +15,7 @@ import {
   type DashboardRoutePoint
 } from "@/components/dashboard/dashboard-route-preview";
 import { AppImage } from "@/components/common/app-image";
+import { UserAvatar } from "@/components/common/user-avatar";
 import { AppShell, PageContainer } from "@/components/layout/app-shell";
 import { Badge } from "@/components/ui";
 import { requireUser } from "@/lib/auth/users";
@@ -101,18 +102,23 @@ export default async function DashboardPage() {
   return (
     <AppShell currentCityNames={shellCityNames.length > 0 ? shellCityNames : dashboardFallbackCities}>
       <PageContainer>
-        <header className="rounded-[28px] bg-surface-elevated/90 p-5 shadow-panel backdrop-blur">
+        <header className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel backdrop-blur">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase text-brand-strong">FoodTour dashboard</p>
-              <h1 className="mt-2 text-page-title text-content">
-                {latestTour ? latestTour.title : `Welcome, ${user.fullName}`}
-              </h1>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-content-muted">
-                {latestTour
-                  ? `Latest saved route in ${latestTour.city.name}. Review the timeline, map preview and totals before continuing.`
-                  : "Start from curated demo restaurants, then generate and save your first city food tour."}
-              </p>
+            <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
+              <Link
+                aria-label="Open profile"
+                className="rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-success/20"
+                href="/profile"
+                title="Open profile"
+              >
+                <UserAvatar name={user.fullName} size="lg" src={user.avatarUrl} />
+              </Link>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold uppercase text-brand-strong">FoodTour dashboard</p>
+                <h1 className="mt-2 truncate text-page-title text-content">
+                  {user.fullName}
+                </h1>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Link
@@ -134,13 +140,13 @@ export default async function DashboardPage() {
 
         <section className="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
           <div className="space-y-5">
-            <section className="rounded-[28px] bg-surface-elevated/90 p-5 shadow-panel">
+            <section className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
               <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm text-content-muted">Your itinerary</p>
-                  <h2 className="text-section-title text-content">
-                    {latestTour ? "Latest saved timeline" : "Starter route preview"}
-                  </h2>
+                <div className="min-w-0">
+                  <p className="text-sm text-content-muted">
+                    {latestTour ? "Saved itinerary" : "Starter itinerary"}
+                  </p>
+                  <h2 className="truncate text-section-title text-content">Latest saved route</h2>
                 </div>
                 <Badge variant={latestTour ? "success" : "warning"}>
                   <Sparkles aria-hidden="true" size={13} />
@@ -252,7 +258,7 @@ function SummaryCard({
   value: string;
 }) {
   return (
-    <article className="rounded-[28px] bg-surface-elevated/90 p-4 shadow-panel">
+    <article className="rounded-[28px] bg-surface-elevated/[0.65] p-4 shadow-panel">
       <div className="flex items-center gap-2 text-brand-strong">
         {icon}
         <p className="text-sm font-semibold">{label}</p>

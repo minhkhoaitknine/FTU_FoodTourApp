@@ -23,7 +23,7 @@ type RestaurantFiltersProps = {
 
 export function RestaurantFilters({ cities, defaults }: RestaurantFiltersProps) {
   return (
-    <form className="rounded-[28px] bg-surface-elevated/92 p-4 shadow-panel">
+    <form className="rounded-[28px] bg-surface-elevated/[0.65] p-4 shadow-panel">
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
       <label className="md:col-span-2 xl:col-span-2">
         <span className="text-xs font-bold uppercase text-content-subtle">Search</span>

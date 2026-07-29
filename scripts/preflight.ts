@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { readdir } from "node:fs/promises";
+import { extname, join } from "node:path";
 import { PrismaClient } from "@prisma/client";
 
 type CheckResult = {
@@ -9,6 +11,7 @@ type CheckResult = {
 };
 
 const prisma = new PrismaClient();
+const supportedMusicExtensions = new Set([".aac", ".flac", ".m4a", ".mp3", ".ogg", ".wav", ".webm"]);
 
 function result(name: string, ok: boolean, detail: string, severity: "error" | "warning" = "error"): CheckResult {
   return { name, ok, detail, severity };
@@ -63,13 +66,12 @@ async function main() {
   }
 
   try {
-    const [cities, restaurants, users, reviews, tours, soundscapes] = await Promise.all([
+    const [cities, restaurants, users, reviews, tours] = await Promise.all([
       prisma.city.count(),
       prisma.restaurant.count({ where: { deletedAt: null } }),
       prisma.user.count({ where: { deletedAt: null } }),
       prisma.review.count({ where: { deletedAt: null } }),
-      prisma.foodTour.count({ where: { deletedAt: null } }),
-      prisma.soundscape.count({ where: { isActive: true } })
+      prisma.foodTour.count({ where: { deletedAt: null } })
     ]);
 
     checks.push(result("Seed cities", cities >= 10, `${cities}/10 cities available.`));
@@ -77,10 +79,20 @@ async function main() {
     checks.push(result("Seed users", users >= 100, `${users}/100 users available.`));
     checks.push(result("Seed reviews", reviews >= 300, `${reviews}/300 reviews available.`));
     checks.push(result("Seed tours", tours >= 40, `${tours}/40 tours available.`));
-    checks.push(result("Seed soundscapes", soundscapes >= 10, `${soundscapes}/10 soundscapes available.`));
   } catch (error) {
     checks.push(
       result("Seed data", false, error instanceof Error ? error.message : "Could not inspect seeded data.")
+    );
+  }
+
+  try {
+    const musicFiles = (await readdir(join(process.cwd(), "music"), { withFileTypes: true })).filter(
+      (entry) => entry.isFile() && supportedMusicExtensions.has(extname(entry.name).toLowerCase())
+    );
+    checks.push(result("Background music files", musicFiles.length > 0, `${musicFiles.length} music file(s) available.`));
+  } catch (error) {
+    checks.push(
+      result("Background music files", false, error instanceof Error ? error.message : "Could not inspect music folder.")
     );
   }
 

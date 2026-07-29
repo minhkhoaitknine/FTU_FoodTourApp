@@ -1,11 +1,13 @@
 import { MapPinned, Search } from "lucide-react";
 import Link from "next/link";
+import { AppBackground } from "@/components/layout/app-background";
 import { buttonVariants } from "@/components/ui";
 
 export default function NotFound() {
   return (
-    <main className="grid min-h-screen place-items-center bg-canvas p-6 text-content">
-      <section className="w-full max-w-xl rounded-[24px] bg-surface-elevated/90 p-6 text-center shadow-panel">
+    <main className="relative isolate grid min-h-screen place-items-center bg-canvas p-6 text-content">
+      <AppBackground />
+      <section className="relative z-10 w-full max-w-xl rounded-[24px] bg-surface-elevated/[0.65] p-6 text-center shadow-panel">
         <div className="mx-auto flex size-14 items-center justify-center rounded-app bg-brand-soft text-brand-strong">
           <Search aria-hidden="true" size={26} />
         </div>

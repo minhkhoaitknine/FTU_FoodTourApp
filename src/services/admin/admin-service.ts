@@ -61,7 +61,7 @@ function defaultTags(input: AdminCreateRestaurantInput) {
   return Array.from(tags).map((name) => ({ name }));
 }
 
-function defaultMenuItems(input: AdminCreateRestaurantInput) {
+function defaultMenuItems(input: Pick<AdminCreateRestaurantInput, "name" | "minPrice" | "maxPrice" | "isVegetarianFriendly" | "isSpicy">) {
   const averagePrice = Math.max(15_000, Math.round((input.minPrice + input.maxPrice) / 2));
 
   return [
@@ -74,6 +74,30 @@ function defaultMenuItems(input: AdminCreateRestaurantInput) {
       allergens: []
     }
   ];
+}
+
+function normalizeTagNames(names: string[]) {
+  return Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
+}
+
+function toTagCreates(input: AdminCreateRestaurantInput) {
+  const names = input.tags?.length ? input.tags : defaultTags(input).map((tag) => tag.name);
+  return normalizeTagNames(names).map((name) => ({ name }));
+}
+
+function toMenuItemCreates(items: ReturnType<typeof defaultMenuItems> | NonNullable<AdminUpdateRestaurantInput["menuItems"]>) {
+  return items.map((item) => ({
+    name: item.name,
+    description: item.description ?? "Admin-created demo menu item.",
+    price: item.price,
+    isVegetarian: item.isVegetarian,
+    isSpicy: item.isSpicy,
+    allergens: item.allergens as Prisma.InputJsonValue
+  }));
+}
+
+function toCreateMenuItems(input: AdminCreateRestaurantInput) {
+  return toMenuItemCreates(input.menuItems?.length ? input.menuItems : defaultMenuItems(input));
 }
 
 export async function getAdminDashboard() {
@@ -161,6 +185,42 @@ const adminRestaurantSelect = {
   isSpicy: true,
   isActive: true,
   createdAt: true,
+  images: {
+    orderBy: { sortOrder: "asc" },
+    select: {
+      id: true,
+      url: true,
+      alt: true,
+      sortOrder: true
+    }
+  },
+  tags: {
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true
+    }
+  },
+  menuCategories: {
+    orderBy: { sortOrder: "asc" },
+    select: {
+      id: true,
+      name: true,
+      sortOrder: true,
+      items: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          isVegetarian: true,
+          isSpicy: true,
+          allergens: true
+        }
+      }
+    }
+  },
   city: { select: { id: true, name: true, region: true } },
   _count: { select: { reviews: true, favorites: true, tourStops: true } }
 } satisfies Prisma.RestaurantSelect;
@@ -204,16 +264,41 @@ export async function createAdminRestaurant(input: AdminCreateRestaurantInput) {
     throw new Error("MIN_PRICE_GT_MAX_PRICE");
   }
 
+  const { imageUrl, imageAlt } = input;
   const slug = await createUniqueSlug(input.name);
   return prisma.restaurant.create({
     data: {
-      ...input,
+      cityId: input.cityId,
+      name: input.name,
+      description: input.description,
+      address: input.address,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      type: input.type,
+      priceRange: input.priceRange,
+      averageMealMinutes: input.averageMealMinutes,
+      minPrice: input.minPrice,
+      maxPrice: input.maxPrice,
+      isVegetarianFriendly: input.isVegetarianFriendly,
+      isSpicy: input.isSpicy,
+      isActive: input.isActive,
       slug,
       culturalStory: input.culturalStory,
       eatingTips: input.eatingTips,
       isDemo: true,
+      ...(imageUrl
+        ? {
+            images: {
+              create: {
+                url: imageUrl,
+                alt: imageAlt ?? `${input.name} restaurant image`,
+                sortOrder: 1
+              }
+            }
+          }
+        : {}),
       tags: {
-        create: defaultTags(input)
+        create: toTagCreates(input)
       },
       openingHours: {
         create: defaultOpeningHours()
@@ -223,7 +308,7 @@ export async function createAdminRestaurant(input: AdminCreateRestaurantInput) {
           name: "Signature dishes",
           sortOrder: 1,
           items: {
-            create: defaultMenuItems(input)
+            create: toCreateMenuItems(input)
           }
         }
       }
@@ -247,10 +332,103 @@ export async function updateAdminRestaurant(id: string, input: AdminUpdateRestau
     throw new Error("MIN_PRICE_GT_MAX_PRICE");
   }
 
-  return prisma.restaurant.update({
-    where: { id },
-    data: input,
-    select: adminRestaurantSelect
+  const { imageUrl, imageAlt, tags, menuItems, ...restaurantData } = input;
+
+  return prisma.$transaction(async (tx) => {
+    await tx.restaurant.update({
+      where: { id },
+      data: restaurantData
+    });
+
+    if (imageUrl !== undefined || imageAlt !== undefined) {
+      const currentImage = await tx.restaurantImage.findFirst({
+        where: { restaurantId: id },
+        orderBy: { sortOrder: "asc" },
+        select: { url: true }
+      });
+      const nextUrl = imageUrl ?? currentImage?.url;
+
+      await tx.restaurantImage.deleteMany({ where: { restaurantId: id } });
+
+      if (nextUrl) {
+        await tx.restaurantImage.create({
+          data: {
+            restaurantId: id,
+            url: nextUrl,
+            alt: imageAlt ?? "Restaurant image",
+            sortOrder: 1
+          }
+        });
+      }
+    }
+
+    if (tags !== undefined) {
+      await tx.restaurantTag.deleteMany({ where: { restaurantId: id } });
+      const tagNames = normalizeTagNames(tags);
+      if (tagNames.length > 0) {
+        await tx.restaurantTag.createMany({
+          data: tagNames.map((name) => ({ restaurantId: id, name })),
+          skipDuplicates: true
+        });
+      }
+    }
+
+    if (menuItems !== undefined) {
+      await tx.menuCategory.deleteMany({ where: { restaurantId: id } });
+      await tx.menuCategory.create({
+        data: {
+          restaurantId: id,
+          name: "Signature dishes",
+          sortOrder: 1,
+          items: {
+            create: toMenuItemCreates(menuItems)
+          }
+        }
+      });
+    }
+
+    return tx.restaurant.findUniqueOrThrow({
+      where: { id },
+      select: adminRestaurantSelect
+    });
+  });
+}
+
+export async function deleteAdminRestaurant(id: string) {
+  return prisma.$transaction(async (tx) => {
+    const restaurant = await tx.restaurant.findUniqueOrThrow({
+      where: { id },
+      select: { id: true, name: true }
+    });
+    const relatedTours = await tx.foodTour.findMany({
+      where: {
+        stops: {
+          some: {
+            restaurantId: id
+          }
+        }
+      },
+      select: { id: true }
+    });
+
+    if (relatedTours.length > 0) {
+      await tx.foodTour.deleteMany({
+        where: {
+          id: {
+            in: relatedTours.map((tour) => tour.id)
+          }
+        }
+      });
+    }
+
+    await tx.restaurant.delete({
+      where: { id }
+    });
+
+    return {
+      ...restaurant,
+      deletedFoodTours: relatedTours.length
+    };
   });
 }
 

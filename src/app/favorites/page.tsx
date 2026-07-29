@@ -18,7 +18,7 @@ export default async function FavoritesPage() {
   return (
     <AppShell currentCityNames={cityNames}>
       <PageContainer size="6xl">
-        <header className="flex flex-col gap-4 rounded-[28px] bg-surface-elevated/90 p-5 shadow-panel md:flex-row md:items-end md:justify-between">
+        <header className="flex flex-col gap-4 rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase text-brand-strong">Favorites</p>
             <h1 className="mt-2 text-page-title text-content">Saved food places</h1>
@@ -35,15 +35,15 @@ export default async function FavoritesPage() {
         {favorites.length > 0 ? (
           <>
             <section className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-[24px] bg-surface-elevated/90 p-4 shadow-panel">
+              <div className="rounded-[24px] bg-surface-elevated/[0.65] p-4 shadow-panel">
                 <p className="text-sm text-content-muted">Saved places</p>
                 <p className="mt-1 text-2xl font-bold text-content">{favorites.length}</p>
               </div>
-              <div className="rounded-[24px] bg-surface-elevated/90 p-4 shadow-panel">
+              <div className="rounded-[24px] bg-surface-elevated/[0.65] p-4 shadow-panel">
                 <p className="text-sm text-content-muted">Cities covered</p>
                 <p className="mt-1 text-2xl font-bold text-content">{new Set(cityNames).size}</p>
               </div>
-              <div className="rounded-[24px] bg-surface-elevated/90 p-4 shadow-panel">
+              <div className="rounded-[24px] bg-surface-elevated/[0.65] p-4 shadow-panel">
                 <p className="text-sm text-content-muted">Average rating</p>
                 <p className="mt-1 text-2xl font-bold text-content">
                   {formatRating(
@@ -66,7 +66,7 @@ export default async function FavoritesPage() {
 
                 return (
                   <article
-                    className="overflow-hidden rounded-[28px] bg-surface-elevated/92 shadow-panel"
+                    className="overflow-hidden rounded-[28px] bg-surface-elevated/[0.65] shadow-panel"
                     key={favorite.restaurantId}
                   >
                     <Link href={`/restaurants/${restaurant.slug}`}>
@@ -125,7 +125,7 @@ export default async function FavoritesPage() {
             </div>
           </>
         ) : (
-          <div className="grid gap-5 rounded-[28px] bg-surface-elevated/90 p-8 text-center shadow-panel md:grid-cols-[1fr_auto] md:text-left">
+          <div className="grid gap-5 rounded-[28px] bg-surface-elevated/[0.65] p-8 text-center shadow-panel md:grid-cols-[1fr_auto] md:text-left">
             <div>
               <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-danger-soft text-danger md:mx-0">
                 <Heart aria-hidden="true" fill="currentColor" size={24} />

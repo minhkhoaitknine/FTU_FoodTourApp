@@ -82,7 +82,7 @@ FoodTour@123
 
 ## Known Production Notes
 
-- Soundscape audio URLs are placeholders until replaced with licensed assets.
+- Background music is loaded from real files in the project `music` folder.
 - The MVP recommendation engine is rule-based, not an LLM.
 - OpenStreetMap attribution must remain visible.
 - Public seed data must remain clearly described as fictitious demo content.

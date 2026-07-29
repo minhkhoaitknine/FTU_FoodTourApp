@@ -1,12 +1,13 @@
-import { Loader2, Utensils } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { BrandLogo } from "@/components/common/brand-logo";
+import { AppBackground } from "@/components/layout/app-background";
 
 export default function Loading() {
   return (
-    <main className="grid min-h-screen place-items-center bg-canvas p-6 text-content">
-      <section className="w-full max-w-md rounded-[24px] bg-surface-elevated/90 p-6 text-center shadow-panel">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-app bg-brand text-content-inverse">
-          <Utensils aria-hidden="true" size={26} />
-        </div>
+    <main className="relative isolate grid min-h-screen place-items-center bg-canvas p-6 text-content">
+      <AppBackground />
+      <section className="relative z-10 w-full max-w-md rounded-[24px] bg-surface-elevated/[0.65] p-6 text-center shadow-panel">
+        <BrandLogo className="mx-auto size-16" priority />
         <h1 className="mt-4 text-section-title">Preparing your food tour</h1>
         <p className="mt-2 text-sm leading-6 text-content-muted">
           Loading the latest demo data, routes and recommendations.

@@ -520,19 +520,6 @@ async function seedFoodTours(users: Awaited<ReturnType<typeof seedUsers>>, creat
   }
 }
 
-async function seedSoundscapes(createdCities: Awaited<ReturnType<typeof seedCities>>) {
-  for (const city of createdCities) {
-    await prisma.soundscape.create({
-      data: {
-        cityId: city.id,
-        title: `${city.name} street ambience demo`,
-        audioUrl: `/audio/demo/${slugify(city.name)}-street-ambience.mp3`,
-        attribution: "Placeholder demo audio. Replace with public-domain or properly licensed assets before production."
-      }
-    });
-  }
-}
-
 async function seedModeration(users: Awaited<ReturnType<typeof seedUsers>>, reviews: Awaited<ReturnType<typeof seedReviews>>) {
   const moderator = users.find((user) => user.role === UserRole.MODERATOR);
   if (!moderator) return;
@@ -564,11 +551,10 @@ async function main() {
   const createdCities = await seedCities();
   const restaurants = await seedRestaurants(createdCities);
 
-  console.log("Creating reviews, favorites, tours and soundscapes...");
+  console.log("Creating reviews, favorites and tours...");
   const reviews = await seedReviews(users, restaurants);
   await seedFavorites(users, restaurants);
   await seedFoodTours(users, createdCities);
-  await seedSoundscapes(createdCities);
   await seedModeration(users, reviews);
 
   console.log("Seed complete.");

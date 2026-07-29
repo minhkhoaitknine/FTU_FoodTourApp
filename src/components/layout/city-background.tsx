@@ -56,8 +56,8 @@ export function CityBackground({ images, intervalMs = 8000 }: CityBackgroundProp
           style={{ backgroundImage: `url("${image.src}")` }}
         />
       ))}
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--color-canvas)/0.82),hsl(var(--color-canvas)/0.58)_42%,hsl(var(--color-canvas)/0.42))]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,hsl(var(--color-canvas)/0.16),hsl(var(--color-canvas)/0.72))]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--color-canvas)/0.3),hsl(var(--color-canvas)/0.14)_42%,hsl(var(--color-canvas)/0.08))]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,hsl(var(--color-canvas)/0.01),hsl(var(--color-canvas)/0.18))]" />
     </div>
   );
 }

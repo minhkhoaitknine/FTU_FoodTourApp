@@ -6,14 +6,13 @@ import {
   History,
   LayoutDashboard,
   MapPinned,
-  Music,
   Shield,
-  Store,
-  Utensils
+  Store
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { BrandLogo } from "@/components/common/brand-logo";
 import { cn } from "@/lib/utils";
 
 const primaryNavItems = [
@@ -22,8 +21,7 @@ const primaryNavItems = [
   { label: "Restaurants", href: "/restaurants", icon: Store },
   { label: "Food map", href: "/map", icon: MapPinned },
   { label: "Tours", href: "/tours", icon: History },
-  { label: "Favorites", href: "/favorites", icon: Heart },
-  { label: "Soundscape", href: "/soundscape", icon: Music }
+  { label: "Favorites", href: "/favorites", icon: Heart }
 ] as const;
 
 type AdminNavItem = {
@@ -49,11 +47,9 @@ export function DesktopSidebar({
   const navItems = showAdmin ? [...primaryNavItems, adminNavItem] : primaryNavItems;
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 border-r border-white/55 bg-surface-elevated/88 px-4 py-5 shadow-panel backdrop-blur-xl lg:flex lg:flex-col">
+    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 border-r border-white/55 bg-surface-elevated/[0.65] px-4 py-5 shadow-panel backdrop-blur-xl lg:flex lg:flex-col">
       <Link className="flex items-center gap-3 rounded-app px-2 py-2" href={homeHref}>
-        <span className="grid size-11 place-items-center rounded-app bg-brand text-content-inverse">
-          <Utensils aria-hidden="true" size={22} />
-        </span>
+        <BrandLogo className="size-12" priority />
         <span>
           <span className="block text-xl font-bold text-content">FoodTour</span>
           <span className="block text-xs text-content-muted">Eat local, feel the street</span>
@@ -81,7 +77,7 @@ export function MobileNavigation({
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-sticky grid grid-cols-5 rounded-app border border-white/65 bg-surface-elevated/95 p-1 shadow-overlay backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-sticky grid grid-cols-5 rounded-app border border-white/65 bg-surface-elevated/[0.65] p-1 shadow-overlay backdrop-blur-xl lg:hidden"
     >
       {mobileNavItems.map((item) => (
         <MobileNavLink key={item.href} {...item} />

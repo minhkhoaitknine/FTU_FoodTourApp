@@ -17,7 +17,7 @@ const SmartFoodMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="grid min-h-[520px] place-items-center rounded-[28px] bg-surface-elevated/92 p-6 shadow-panel md:min-h-[680px]">
+      <div className="grid min-h-[520px] place-items-center rounded-[28px] bg-surface-elevated/[0.65] p-6 shadow-panel md:min-h-[680px]">
         <p className="font-bold text-brand-strong">Loading map...</p>
       </div>
     )

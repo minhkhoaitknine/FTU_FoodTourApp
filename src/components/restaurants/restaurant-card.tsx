@@ -23,7 +23,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
     });
 
   return (
-    <article className="group grid gap-4 rounded-[28px] border border-line bg-surface-elevated/92 p-4 shadow-panel transition duration-fast ease-app hover:shadow-lift motion-safe:hover:-translate-y-0.5 md:grid-cols-[172px_1fr]">
+    <article className="group grid gap-4 rounded-[28px] border border-line bg-surface-elevated/[0.65] p-4 shadow-panel transition duration-fast ease-app hover:shadow-lift motion-safe:hover:-translate-y-0.5 md:grid-cols-[172px_1fr]">
       <Link className="block" href={`/restaurants/${restaurant.slug}`}>
         <AppImage
           alt={resolvedImage.alt}

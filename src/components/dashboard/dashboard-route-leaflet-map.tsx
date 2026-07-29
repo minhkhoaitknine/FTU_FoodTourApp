@@ -2,7 +2,7 @@
 
 import L from "leaflet";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 
 import type { DashboardRoutePoint } from "@/components/dashboard/dashboard-route-preview";
 
@@ -44,7 +44,6 @@ export function DashboardRouteLeafletMap({ points }: DashboardRouteLeafletMapPro
   const [userCenter, setUserCenter] = useState<LatLng | null>(null);
   const center = userCenter ?? fallbackCenter;
   const zoom = userCenter ? 15 : points.length > 0 ? 14 : 5;
-  const routeLine = points.map((point) => [point.latitude, point.longitude] as LatLng);
 
   useEffect(() => {
     if (!shouldUseDeviceLocation) return;
@@ -72,9 +71,6 @@ export function DashboardRouteLeafletMap({ points }: DashboardRouteLeafletMapPro
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {routeLine.length >= 2 ? (
-        <Polyline pathOptions={{ color: "#1f6c3b", weight: 4, opacity: 0.72 }} positions={routeLine} />
-      ) : null}
       {points.map((point) => (
         <Marker icon={routeIcon} key={point.id} position={[point.latitude, point.longitude]}>
           <Popup>{point.label}</Popup>

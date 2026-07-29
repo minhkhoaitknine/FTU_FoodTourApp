@@ -1,7 +1,8 @@
-import { ArrowRight, Heart, MapPinned, Route, Search, Utensils } from "lucide-react";
+import { ArrowRight, Heart, MapPinned, Route, Search } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { BrandLogo } from "@/components/common/brand-logo";
 import { AppShell, PageContainer } from "@/components/layout/app-shell";
 import { buttonVariants } from "@/components/ui";
 import { getSessionFromCookies } from "@/lib/auth/session";
@@ -15,7 +16,7 @@ export default async function HomePage() {
   return (
     <AppShell currentCityNames={featuredCities}>
       <PageContainer>
-        <header className="rounded-[28px] bg-surface-elevated/90 p-6 shadow-panel backdrop-blur md:p-8">
+        <header className="rounded-[28px] bg-surface-elevated/[0.65] p-6 shadow-panel backdrop-blur md:p-8">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <p className="text-sm font-semibold uppercase text-brand-strong">FoodTour</p>
@@ -50,7 +51,7 @@ export default async function HomePage() {
             title="Plan a tour"
           />
           <PublicFeature
-            description="Preview food places and estimated route lines on the map."
+            description="Preview food places and choose markers on the map."
             icon={<MapPinned aria-hidden="true" size={22} />}
             title="Use the map"
           />
@@ -61,12 +62,10 @@ export default async function HomePage() {
           />
         </section>
 
-        <section className="rounded-[28px] bg-surface-elevated/90 p-6 shadow-panel md:p-8">
+        <section className="rounded-[28px] bg-surface-elevated/[0.65] p-6 shadow-panel md:p-8">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="flex size-12 items-center justify-center rounded-app bg-brand text-content-inverse">
-                <Utensils aria-hidden="true" size={24} />
-              </div>
+              <BrandLogo className="size-14" />
               <h2 className="mt-4 text-section-title text-content">Demo accounts are available</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-content-muted">
                 Use the login page to enter as User, Moderator or Admin and review the complete workflow.
@@ -92,7 +91,7 @@ function PublicFeature({
   title: string;
 }) {
   return (
-    <article className="rounded-[24px] bg-surface-elevated/90 p-5 shadow-panel">
+    <article className="rounded-[24px] bg-surface-elevated/[0.65] p-5 shadow-panel">
       <div className="flex size-11 items-center justify-center rounded-app bg-brand-soft text-brand-strong">
         {icon}
       </div>

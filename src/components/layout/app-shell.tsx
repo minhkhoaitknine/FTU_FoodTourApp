@@ -2,10 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Menu } from "lucide-react";
 
+import { BrandLogo } from "@/components/common/brand-logo";
+import { UserAvatar } from "@/components/common/user-avatar";
+import { AppBackground } from "@/components/layout/app-background";
 import { DesktopSidebar, MobileNavigation } from "@/components/layout/app-navigation";
-import { CityBackground } from "@/components/layout/city-background";
 import { getCurrentUser } from "@/lib/auth/users";
-import { resolveCityImage, type ResolvedImageAsset } from "@/lib/assets/image-resolver";
 import { cn } from "@/lib/utils";
 
 type AppShellProps = {
@@ -21,26 +22,22 @@ const baseMobileMenuLinks = [
   { label: "Restaurants", href: "/restaurants" },
   { label: "Food map", href: "/map" },
   { label: "Saved tours", href: "/tours" },
-  { label: "Favorites", href: "/favorites" },
-  { label: "Soundscape", href: "/soundscape" }
+  { label: "Favorites", href: "/favorites" }
 ] as const;
 
 export async function AppShell({
   children,
-  className,
-  currentCityName = "Vietnam",
-  currentCityNames
+  className
 }: AppShellProps) {
   const user = await getCurrentUser();
   const isSignedIn = Boolean(user);
   const showAdmin = user?.role === "ADMIN" || user?.role === "MODERATOR";
   const adminLabel = user?.role === "MODERATOR" ? "Moderation" : "Admin Panel";
   const homeHref = isSignedIn ? "/dashboard" : "/";
-  const backgroundImages = resolveShellBackgrounds(currentCityNames ?? [currentCityName]);
 
   return (
     <div className="relative isolate min-h-screen bg-canvas text-content">
-      <CityBackground images={backgroundImages} />
+      <AppBackground />
       <a
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-toast focus:rounded-app focus:bg-surface-inverse focus:px-4 focus:py-2 focus:text-content-inverse"
         href="#main-content"
@@ -49,12 +46,22 @@ export async function AppShell({
       </a>
 
       <div className="relative z-10 lg:flex">
-        <DesktopSidebar adminLabel={adminLabel} homeHref={homeHref} showAdmin={showAdmin} />
+        <DesktopSidebar
+          adminLabel={adminLabel}
+          homeHref={homeHref}
+          showAdmin={showAdmin}
+        />
         <div className="min-w-0 flex-1">
-          <TopBar adminLabel={adminLabel} homeHref={homeHref} showAdmin={showAdmin} />
+          <TopBar
+            adminLabel={adminLabel}
+            avatarUrl={user?.avatarUrl}
+            homeHref={homeHref}
+            showAdmin={showAdmin}
+            userName={user?.fullName}
+          />
           <main
             className={cn(
-              "px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-4 md:px-6 md:pb-10 lg:px-8",
+              "px-4 pb-[calc(11.5rem+env(safe-area-inset-bottom))] pt-4 sm:pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:px-6 md:pb-10 lg:px-8",
               "lg:pt-8",
               className
             )}
@@ -68,21 +75,6 @@ export async function AppShell({
       <MobileNavigation adminLabel={adminLabel} showAdmin={showAdmin} />
     </div>
   );
-}
-
-function resolveShellBackgrounds(cityNames: string[]) {
-  const images: ResolvedImageAsset[] = [];
-  const seen = new Set<string>();
-
-  for (const cityName of cityNames) {
-    const image = resolveCityImage(cityName);
-    if (seen.has(image.src)) continue;
-    seen.add(image.src);
-    images.push(image);
-  }
-
-  if (images.length === 0) images.push(resolveCityImage("Vietnam"));
-  return images;
 }
 
 export function PageContainer({
@@ -105,12 +97,16 @@ export function PageContainer({
 
 function TopBar({
   adminLabel,
+  avatarUrl,
   homeHref,
-  showAdmin
+  showAdmin,
+  userName
 }: {
   adminLabel: string;
+  avatarUrl?: string | null;
   homeHref: string;
   showAdmin: boolean;
+  userName?: string;
 }) {
   return (
     <header className="sticky top-0 z-sticky border-b border-white/50 bg-canvas/82 px-4 py-3 backdrop-blur-xl md:px-6 lg:hidden">
@@ -120,13 +116,21 @@ function TopBar({
           className="flex min-w-0 items-center gap-2 rounded-app px-1 py-1 lg:hidden"
           href={homeHref}
         >
-          <span className="grid size-9 place-items-center rounded-app bg-brand text-content-inverse">
-            FT
-          </span>
+          <BrandLogo className="size-10" priority />
           <span className="truncate font-bold">FoodTour</span>
         </Link>
 
         <div className="ml-auto flex min-w-0 items-center gap-2">
+          {userName ? (
+            <Link
+              aria-label="Open profile"
+              className="grid size-11 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-success/20"
+              href="/profile"
+              title={userName}
+            >
+              <UserAvatar name={userName} size="sm" src={avatarUrl} />
+            </Link>
+          ) : null}
           <Link
             className="rounded-app border border-line bg-surface-elevated px-3 py-2 text-sm font-semibold text-content transition hover:border-brand hover:text-brand-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-success/20"
             href="/restaurants"

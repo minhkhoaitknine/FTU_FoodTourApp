@@ -16,7 +16,7 @@ export default async function TourHistoryPage() {
   return (
     <AppShell currentCityNames={cityNames}>
       <PageContainer size="6xl">
-        <header className="flex flex-col gap-4 rounded-[28px] bg-surface-elevated/90 p-5 shadow-panel md:flex-row md:items-end md:justify-between">
+        <header className="flex flex-col gap-4 rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase text-brand-strong">Saved tours</p>
             <h1 className="mt-2 text-page-title text-content">Tour history</h1>
@@ -33,15 +33,15 @@ export default async function TourHistoryPage() {
         {tours.length > 0 ? (
           <>
             <section className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-[24px] bg-surface-elevated/90 p-4 shadow-panel">
+              <div className="rounded-[24px] bg-surface-elevated/[0.65] p-4 shadow-panel">
                 <p className="text-sm text-content-muted">Saved tours</p>
                 <p className="mt-1 text-2xl font-bold text-content">{tours.length}</p>
               </div>
-              <div className="rounded-[24px] bg-surface-elevated/90 p-4 shadow-panel">
+              <div className="rounded-[24px] bg-surface-elevated/[0.65] p-4 shadow-panel">
                 <p className="text-sm text-content-muted">Cities</p>
                 <p className="mt-1 text-2xl font-bold text-content">{new Set(cityNames).size}</p>
               </div>
-              <div className="rounded-[24px] bg-surface-elevated/90 p-4 shadow-panel">
+              <div className="rounded-[24px] bg-surface-elevated/[0.65] p-4 shadow-panel">
                 <p className="text-sm text-content-muted">Total stops</p>
                 <p className="mt-1 text-2xl font-bold text-content">
                   {tours.reduce((total, tour) => total + tour.summary.stopCount, 0)}
@@ -55,7 +55,7 @@ export default async function TourHistoryPage() {
 
                 return (
                   <Link
-                    className="group overflow-hidden rounded-[28px] bg-surface-elevated/92 shadow-panel transition motion-safe:hover:-translate-y-0.5"
+                    className="group overflow-hidden rounded-[28px] bg-surface-elevated/[0.65] shadow-panel transition motion-safe:hover:-translate-y-0.5"
                     href={`/tours/${tour.id}`}
                     key={tour.id}
                   >
@@ -111,7 +111,7 @@ export default async function TourHistoryPage() {
             </div>
           </>
         ) : (
-          <div className="grid gap-5 rounded-[28px] bg-surface-elevated/90 p-8 text-center shadow-panel md:grid-cols-[1fr_auto] md:text-left">
+          <div className="grid gap-5 rounded-[28px] bg-surface-elevated/[0.65] p-8 text-center shadow-panel md:grid-cols-[1fr_auto] md:text-left">
             <div>
               <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-brand-soft text-brand-strong md:mx-0">
                 <MapPinned aria-hidden="true" size={24} />

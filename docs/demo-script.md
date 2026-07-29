@@ -31,12 +31,12 @@ FoodTour Generator helps travelers plan local Vietnamese food routes across majo
 5. Save the tour and open `/tours`.
 6. Open the tour detail page and show stop reasons, estimated cost, time and distance.
 
-## 5. Favorites, Reviews and Soundscape
+## 5. Favorites, Reviews and Background Music
 
 1. Favorite a restaurant from the detail page.
 2. Open `/favorites`.
 3. Submit or update a review.
-4. Open `/soundscape` and show city-based sample metadata.
+4. Use the fixed music box to toggle background music and adjust volume.
 
 ## 6. Admin Module
 

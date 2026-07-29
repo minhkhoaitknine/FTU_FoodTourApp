@@ -34,7 +34,7 @@ export default async function RestaurantDetailPage({ params }: RestaurantDetailP
   return (
     <AppShell currentCityName={restaurant.city.name}>
       <PageContainer size="6xl">
-        <header className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel">
+        <header className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
           <Link className="text-sm font-bold text-brand-strong" href="/restaurants">
             Back to restaurants
           </Link>
@@ -87,7 +87,7 @@ export default async function RestaurantDetailPage({ params }: RestaurantDetailP
 
         <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
           <section className="space-y-5">
-            <div className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel">
+            <div className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
               <h2 className="text-2xl font-bold">Menu</h2>
               <div className="mt-4 space-y-5">
                 {restaurant.menuCategories.map((category) => (
@@ -128,7 +128,7 @@ export default async function RestaurantDetailPage({ params }: RestaurantDetailP
               </div>
             </div>
 
-            <div className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel">
+            <div className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
               <h2 className="text-2xl font-bold">Reviews</h2>
               <div className="mt-4 space-y-3">
                 {restaurant.reviews.length > 0 ? (
@@ -153,7 +153,7 @@ export default async function RestaurantDetailPage({ params }: RestaurantDetailP
           </section>
 
           <aside className="space-y-5">
-            <div className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel">
+            <div className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
               <h2 className="text-2xl font-bold">Details</h2>
               <dl className="mt-4 space-y-3 text-sm">
                 <div className="flex justify-between gap-3">
@@ -179,7 +179,7 @@ export default async function RestaurantDetailPage({ params }: RestaurantDetailP
               </dl>
             </div>
 
-            <div className="rounded-[28px] bg-surface-elevated/92 p-5 shadow-panel">
+            <div className="rounded-[28px] bg-surface-elevated/[0.65] p-5 shadow-panel">
               <h2 className="text-2xl font-bold">Opening hours</h2>
               <div className="mt-4 space-y-2 text-sm">
                 {restaurant.openingHours.map((hour) => (

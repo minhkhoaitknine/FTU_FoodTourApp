@@ -59,4 +59,3 @@ export async function requireRole(roles: AuthRole[]) {
   if (!roles.includes(user.role)) redirect("/dashboard");
   return user;
 }
-
