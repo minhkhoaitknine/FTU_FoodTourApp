@@ -1,137 +1,181 @@
-# Food Tour Generator
+# FoodTour App
 
-Food Tour Generator is a full-stack web application for planning local Vietnamese food tours based on budget, time, transport mode, dietary preferences, allergies and distance.
+FoodTour is a full-stack web application for planning Vietnamese food tours across major travel cities. It combines a restaurant explorer, map-based discovery, rule-based itinerary generation, saved tours, reviews, favorites, profile management, admin operations and a shared background music player.
 
-This repository is at release-candidate stage for a public student/demo deployment.
+The current version is prepared for public Vercel deployment with PostgreSQL/Neon and seeded demo data.
 
-## Current Stack
+## Highlights
 
-- Next.js App Router
-- React
+- Authenticated dashboard with the user's profile avatar and latest saved route.
+- Restaurant explorer with search, filters, pagination, ratings, images and detail pages.
+- Smart food map powered by Leaflet/OpenStreetMap and browser geolocation.
+- Rule-based food tour generator using budget, distance, schedule, transport, dietary preference and tags.
+- Editable saved tour plans with add/remove/reorder/update stop controls.
+- Favorites and one-review-per-restaurant user flow.
+- Profile page with display name, email, password update and upload/crop avatar from the device.
+- Shared background music player mounted once across the app, with persisted mute/volume/track state.
+- Admin Panel for restaurants, users and reviews.
+- Moderator workspace focused on review moderation.
+- Production-oriented health check, preflight script, Vercel config and QA scripts.
+
+## Tech Stack
+
+- Next.js 16 App Router
+- React 19
 - TypeScript
 - Tailwind CSS
 - PostgreSQL
 - Prisma
 - Vitest
-- Leaflet/OpenStreetMap
+- Leaflet and OpenStreetMap
 
-## Local Setup
+## Project Structure
 
-1. Install dependencies:
-
-   ```powershell
-   npm.cmd install
-   ```
-
-2. Create local environment config:
-
-   ```powershell
-   Copy-Item .env.example .env
-   ```
-
-3. Update `DATABASE_URL` in `.env` if your local PostgreSQL credentials differ.
-
-4. Optional: start local PostgreSQL with Docker:
-
-   ```powershell
-   docker compose up -d
-   ```
-
-5. Generate Prisma client:
-
-   ```powershell
-   npm.cmd run prisma:generate
-   ```
-
-6. Apply the schema to the configured database:
-
-   ```powershell
-   npm.cmd run db:push
-   ```
-
-7. Seed reproducible demo data:
-
-   ```powershell
-   npm.cmd run db:seed
-   ```
-
-8. Start the development server:
-
-   ```powershell
-   npm.cmd run dev
-   ```
-
-9. Open:
-
-   ```text
-   http://localhost:3000
-   ```
-
-10. Health check:
-
-   ```text
-   http://localhost:3000/api/health
-   ```
-
-11. Run preflight checks:
-
-   ```powershell
-   npm.cmd run preflight
-   ```
-
-## Database Commands
-
-Generate Prisma client:
-
-```powershell
-npm.cmd run prisma:generate
+```text
+.
+|-- music/                         # Real audio files used by the background music player
+|-- prisma/
+|   |-- schema.prisma              # PostgreSQL data model
+|   |-- migrations/                # Production database migrations
+|   `-- seed.ts                    # Reproducible demo data
+|-- public/images/brand/           # App logo and shared background image
+|-- scripts/preflight.ts           # Deployment readiness checks
+|-- src/
+|   |-- app/                       # Next.js routes and API routes
+|   |-- components/                # UI, layout, admin, map, music, profile and tour components
+|   |-- lib/                       # Auth, db, formatting, assets and music helpers
+|   `-- services/                  # Domain services and validation schemas
+|-- docker-compose.yml             # Local PostgreSQL
+|-- vercel.json                    # Vercel build config
+`-- package.json
 ```
 
-Push schema without creating a migration file:
+## Main Routes
 
-```powershell
-npm.cmd run db:push
-```
+| Route | Purpose |
+| --- | --- |
+| `/` | Public entry page. Signed-in users are guided into the dashboard flow. |
+| `/login`, `/register` | Authentication pages. |
+| `/dashboard` | Main signed-in dashboard and latest saved route preview. |
+| `/restaurants` | Restaurant explorer with filters and pagination. |
+| `/restaurants/[slug]` | Restaurant details, menu, reviews and favorite actions. |
+| `/map` | Interactive food map with restaurant markers and device location. |
+| `/tour-generator` | Generate and edit a food tour plan. |
+| `/tours`, `/tours/[id]` | Saved tour history and details. |
+| `/favorites` | Current user's favorite restaurants. |
+| `/profile` | User profile, avatar upload/crop, email and password settings. |
+| `/admin` | Admin Panel or Moderator workspace depending on role. |
 
-Create a development migration:
+## API Surface
 
-```powershell
-npm.cmd run prisma:migrate
-```
+### Authentication and Profile
 
-Reset database and run the configured seed script:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `PATCH /api/profile`
 
-```powershell
-npm.cmd run db:reset
-```
+### Restaurants, Reviews and Favorites
 
-Run only the seed script:
+- `GET /api/cities`
+- `GET /api/restaurants`
+- `GET /api/restaurants/[idOrSlug]`
+- `GET /api/restaurants/[idOrSlug]/menu`
+- `GET /api/restaurants/[idOrSlug]/reviews`
+- `POST /api/restaurants/[idOrSlug]/reviews`
+- `PATCH /api/reviews/[id]`
+- `DELETE /api/reviews/[id]`
+- `GET /api/favorites`
+- `POST /api/favorites`
+- `DELETE /api/favorites/[restaurantId]`
 
-```powershell
-npm.cmd run db:seed
-```
+### Tours and Recommendations
 
-Apply production migrations:
+- `POST /api/recommendations/generate`
+- `POST /api/food-tours/generate`
+- `GET /api/food-tours`
+- `POST /api/food-tours`
+- `GET /api/food-tours/[id]`
+- `POST /api/food-tours/[id]/clone`
+- `DELETE /api/food-tours/[id]`
 
-```powershell
-npm.cmd run db:deploy
-```
+### Admin and Moderation
 
-## Product Areas
+- `GET /api/admin/dashboard`
+- `GET /api/admin/restaurants`
+- `POST /api/admin/restaurants`
+- `PATCH /api/admin/restaurants/[id]`
+- `DELETE /api/admin/restaurants/[id]`
+- `GET /api/admin/users`
+- `PATCH /api/admin/users/[id]`
+- `GET /api/admin/reviews`
+- `PATCH /api/admin/reviews/[id]`
 
-- Public landing page at `/`.
-- Authenticated dashboard at `/dashboard`.
-- Tour generator, saved tour history and tour details.
-- Restaurant explorer, restaurant detail, reviews and favorites.
-- Smart food map with OpenStreetMap and browser geolocation.
-- Shared background music player that reads real files from the project `music` folder.
-- Admin Panel at `/admin` for admin-only demo data operations.
+### System and Media
 
-## Demo Data Policy
+- `GET /api/health`
+- `GET /api/background-music`
+- `GET /api/background-music/[track]`
 
-The seed data created in Phase 3 must be marked as fictitious demo data. Restaurant names should sound natural but must not be presented as real businesses.
+## Recommendation Engine
 
-Priority cities for demo data:
+FoodTour currently uses a deterministic rule-based recommendation engine, not an external LLM API.
+
+The engine evaluates:
+
+- city and restaurant availability
+- requested meal stops
+- opening hours
+- budget and number of people
+- vegetarian and spicy preferences
+- allergies
+- preferred tags/cuisines
+- distance from the start point
+- rating and diversity between stops
+
+Routes use Haversine distance estimates for the MVP. The map uses OpenStreetMap tiles and does not require a paid map provider.
+
+## Roles and Permissions
+
+| Role | Capabilities |
+| --- | --- |
+| `USER` | Create tours, save tours, review restaurants, manage favorites and profile. |
+| `MODERATOR` | Access moderation workspace and moderate reviews. |
+| `ADMIN` | Full admin access for restaurant, user and review operations. |
+
+Admin restaurant tools support creating and editing:
+
+- restaurant core information
+- uploaded restaurant image
+- city, type, price range and location
+- tags
+- menu items
+- vegetarian/spicy flags
+- active/hidden state
+
+Admin delete permanently removes a restaurant and dependent records such as images, menu, tags, reviews, favorites and saved tours that reference that restaurant. Use it carefully.
+
+## Background Music
+
+The old Soundscape UI flow has been removed from the app experience. The current app uses one shared background music player mounted in the root layout.
+
+Behavior:
+
+- Reads real files from the project `music/` folder.
+- Plays tracks in order.
+- Loops back to the first track after the final track.
+- Persists enabled/muted state, volume, collapsed state and selected track in browser storage.
+- Avoids multiple overlapping players when navigating between pages.
+- Handles browser autoplay restrictions by waiting for user interaction when needed.
+
+To add music, place a supported audio file in `music/` and redeploy. Do not add fake placeholder audio files.
+
+## Demo Data
+
+The seed script creates fictitious demo data for Vietnamese travel cities. Restaurant names are demo records and should not be presented as real businesses.
+
+Priority cities:
 
 - Ha Noi
 - Ho Chi Minh City
@@ -144,273 +188,164 @@ Priority cities for demo data:
 - Phu Quoc
 - Sa Pa
 
-## Demo Accounts
+Demo accounts:
 
-Development demo accounts are created by the Phase 3 seed script:
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@foodtour.demo` | `FoodTour@123` |
+| Moderator | `moderator@foodtour.demo` | `FoodTour@123` |
+| User | `user@foodtour.demo` | `FoodTour@123` |
 
-- `admin@foodtour.demo`
-- `moderator@foodtour.demo`
-- `user@foodtour.demo`
+Seed targets:
 
-Development-only password for all demo accounts:
+- 10 cities
+- 60+ demo restaurants
+- 240+ menu items
+- 100+ demo users
+- 300+ reviews
+- 40+ saved food tours
+
+## Local Development
+
+Install dependencies:
+
+```powershell
+npm.cmd install
+```
+
+Create a local env file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+For local Docker PostgreSQL, keep this value in `.env`:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/foodtour?schema=public"
+```
+
+Start PostgreSQL:
+
+```powershell
+docker compose up -d
+```
+
+Generate Prisma Client:
+
+```powershell
+npm.cmd run prisma:generate
+```
+
+Apply schema and seed demo data:
+
+```powershell
+npm.cmd run db:push
+npm.cmd run db:seed
+```
+
+Start the dev server:
+
+```powershell
+npm.cmd run dev
+```
+
+Open:
 
 ```text
-FoodTour@123
+http://localhost:3000
 ```
 
-Seed output target:
+Use `npm.cmd` on Windows to avoid PowerShell execution policy issues with `npm.ps1`.
 
-- 10 tourist cities.
-- 60 fictitious demo restaurants.
-- About 240 demo menu items.
-- 100 demo users.
-- 300 demo reviews.
-- 40 demo food tours.
-- Background music files from the project `music` folder.
+## Environment Variables
 
-Do not use the demo password or demo data policy in production.
+Required:
 
-## Authentication
+| Variable | Description |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string. Use Neon/Supabase/Railway/etc. in production. |
+| `AUTH_SECRET` | Long random secret used to sign auth sessions. |
+| `NEXT_PUBLIC_APP_URL` | Public base URL of the app. |
 
-Implemented routes:
+Optional:
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
+| Variable | Description |
+| --- | --- |
+| `OPENROUTESERVICE_API_KEY` | Reserved for optional external routing. Not required for the current MVP. |
+| `ENABLE_EXTERNAL_ROUTING` | Optional routing flag. Keep `false` unless external routing is intentionally enabled. |
 
-Protected pages:
+When entering values in the Vercel dashboard, do not wrap values in quotation marks.
 
-- `/dashboard` requires a signed-in user.
-- `/admin` requires the `ADMIN` role.
-- App navigation uses `/dashboard` as the signed-in entry point. The public `/` page is not shown as a primary app nav item.
-- The `Admin Panel` nav item is only shown to admin users.
+## Useful Commands
 
-Auth uses an httpOnly cookie named `foodtour_session`. The frontend does not store the token in `localStorage`.
+| Command | Purpose |
+| --- | --- |
+| `npm.cmd run dev` | Start local development server. |
+| `npm.cmd run build` | Build production Next.js app. |
+| `npm.cmd run start` | Start production server after build. |
+| `npm.cmd run typecheck` | Run TypeScript checks. |
+| `npm.cmd run lint` | Run ESLint. |
+| `npm.cmd run test` | Run Vitest unit tests. |
+| `npm.cmd run preflight` | Check env, database, seed data and music files. |
+| `npm.cmd run prisma:generate` | Generate Prisma Client. |
+| `npm.cmd run db:push` | Push schema to local/dev database. |
+| `npm.cmd run prisma:migrate` | Create a development migration. |
+| `npm.cmd run db:deploy` | Apply migrations in production. |
+| `npm.cmd run db:seed` | Seed demo data. |
+| `npm.cmd run db:reset` | Reset database and run seed. |
 
-Quick demo:
+## Deployment
 
-1. Start PostgreSQL and seed the database.
-2. Start the development server.
-3. Open `http://localhost:3000/login`.
-4. Use `admin@foodtour.demo` / `FoodTour@123` to access `/admin`.
-5. Use `user@foodtour.demo` / `FoodTour@123` to confirm `/admin` redirects back to `/dashboard`.
+The project is configured for Vercel:
 
-## Restaurant Core
+- `vercel.json` uses `npm install` and `npm run build`.
+- `postinstall` runs `prisma generate`.
+- Recommended Vercel region is `sin1`.
+- Use a managed PostgreSQL database such as Neon for public deployment.
 
-Implemented pages:
-
-- `/restaurants`
-- `/restaurants/:slug`
-
-Implemented read APIs:
-
-- `GET /api/cities`
-- `GET /api/restaurants`
-- `GET /api/restaurants/:idOrSlug`
-- `GET /api/restaurants/:idOrSlug/menu`
-- `GET /api/restaurants/:idOrSlug/reviews`
-
-Restaurant list query parameters:
-
-- `q`
-- `city`
-- `type`
-- `priceRange`
-- `vegetarian=true`
-- `spicy=true`
-- `minRating`
-- `page`
-- `limit`
-
-Example:
-
-```text
-http://localhost:3000/restaurants?city=Hue&priceRange=BUDGET
-```
-
-## Smart Map
-
-Implemented page:
-
-- `/map`
-
-Implemented map/routing API:
-
-- `POST /api/maps/route`
-
-Map behavior:
-
-- Leaflet interactive map.
-- OpenStreetMap tile layer with visible attribution.
-- Restaurant markers from seeded database records.
-- Marker popup with price/rating/detail link.
-- Synchronized restaurant list and selected marker.
-- Search/filter by text, city and restaurant type.
-- Browser geolocation button for current user location.
-- The My Location control recenters the map to the device location with a close zoom.
-- Route preview line for the first filtered stops.
-- Haversine fallback distance estimate. No external routing/geocoding API is required for the MVP demo.
-
-Example route fallback request:
+Before deploying:
 
 ```powershell
-$body = @{
-  transportMode = "MOTORBIKE"
-  points = @(
-    @{ latitude = 16.4637; longitude = 107.5909 },
-    @{ latitude = 16.47; longitude = 107.60 }
-  )
-} | ConvertTo-Json -Depth 4
-
-Invoke-WebRequest -Uri "http://localhost:3000/api/maps/route" -Method Post -Body $body -ContentType "application/json"
-```
-
-## Recommendation Engine
-
-Implemented endpoint:
-
-- `POST /api/recommendations/generate`
-
-The MVP engine is a rule-based and weighted recommendation engine. It is not presented as Machine Learning.
-
-The engine performs:
-
-- Allergy filtering.
-- Vegetarian filtering.
-- Max-distance filtering.
-- Opening-hours validation per planned stop time.
-- Budget validation for group size.
-- Preference/tag scoring.
-- Rating, distance, budget and meal-type scoring.
-- Diversity penalty to avoid overly similar stops.
-- Nearest-neighbor route ordering with Haversine distance.
-
-Example:
-
-```powershell
-$body = @{
-  cityName = "Hue"
-  startAddress = "Hue demo start"
-  startLatitude = 16.4637
-  startLongitude = 107.5909
-  startAt = "2026-07-27T07:30:00+07:00"
-  durationHours = 10
-  numberOfDays = 1
-  budget = 600000
-  numberOfPeople = 2
-  transportMode = "MOTORBIKE"
-  preferences = @("local-food", "noodle", "coffee")
-  vegetarian = $false
-  allergies = @()
-  desiredStops = 4
-  maxDistanceKm = 20
-  mealTypes = @("BREAKFAST", "LUNCH", "SNACK", "DINNER")
-} | ConvertTo-Json -Depth 5
-
-Invoke-WebRequest -Uri "http://localhost:3000/api/recommendations/generate" -Method Post -Body $body -ContentType "application/json"
-```
-
-Run recommendation unit tests:
-
-```powershell
+npm.cmd run typecheck
+npm.cmd run lint
 npm.cmd run test
+npm.cmd run build
+npm.cmd run preflight
 ```
 
-## Food Tour User Flow
+Redeploy through GitHub/Vercel:
 
-Implemented pages:
+```powershell
+git status
+git add .
+git commit -m "feat: polish FoodTour release"
+git push origin main
+```
 
-- `/tour-generator`
-- `/tours`
-- `/tours/:id`
+Vercel will automatically create a new production deployment from `main`.
 
-Implemented APIs:
+After deployment:
 
-- `POST /api/food-tours/generate`
-- `GET /api/food-tours`
-- `POST /api/food-tours`
-- `GET /api/food-tours/:id`
-- `POST /api/food-tours/:id/clone`
-- `DELETE /api/food-tours/:id`
+1. Confirm the new Vercel deployment status is `Ready`.
+2. Open the production URL.
+3. Visit `/api/health`.
+4. Log in with a demo account.
+5. Check dashboard, restaurants, map, tour generator, profile avatar upload/crop, music controls and admin/moderation pages.
 
-Behavior:
+## Quality Gate
 
-- The generator page requires login.
-- The server generates and saves tours; the client does not decide totals.
-- Saved tour history is scoped to the current user.
-- Dashboard mini map focuses on the latest saved tour when one exists, and only falls back to device location when there are no saved route points.
-- Tour detail shows timeline, stop reasons, estimated cost, travel time and distance.
-- Clone creates a new saved copy.
-- Delete uses soft delete by setting `deletedAt` and archiving the tour.
+Latest local validation used for this release candidate:
 
-## Reviews, Favorites and Background Music
+- TypeScript: pass
+- ESLint: pass
+- Vitest: pass
+- Production build: pass
+- Preflight against Neon: pass
+- Production dependency audit: 0 high-severity runtime vulnerabilities
 
-Implemented pages:
+## Notes
 
-- `/favorites`
-
-Implemented APIs:
-
-- `GET /api/favorites`
-- `POST /api/favorites`
-- `DELETE /api/favorites/:restaurantId`
-- `POST /api/restaurants/:id/reviews`
-- `PATCH /api/reviews/:id`
-- `DELETE /api/reviews/:id`
-- `GET /api/background-music`
-- `GET /api/background-music/:track`
-
-Behavior:
-
-- Signed-in users can favorite/unfavorite restaurants.
-- Favorites are scoped to the current user.
-- Signed-in users can create or update one review per restaurant.
-- Signed-in users can delete their own review.
-- Restaurant average rating and rating count are recalculated server-side.
-- The shared background music player is mounted once in the root layout.
-- Music state is persisted in the browser: enabled/disabled and volume.
-- Tracks are discovered from real audio files in the project `music` folder and streamed through API routes.
-
-## Admin Module
-
-Implemented page:
-
-- `/admin`
-
-Implemented APIs:
-
-- `GET /api/admin/dashboard`
-- `GET /api/admin/restaurants`
-- `POST /api/admin/restaurants`
-- `PATCH /api/admin/restaurants/:id`
-- `GET /api/admin/users`
-- `PATCH /api/admin/users/:id`
-- `GET /api/admin/reviews`
-- `PATCH /api/admin/reviews/:id`
-
-Behavior:
-
-- Admin page and APIs require the `ADMIN` role.
-- Admin Panel has a direct `Back to Dashboard` action.
-- Admin dashboard shows key counts and recent review/tour activity.
-- Admin can create demo restaurants and edit core fields.
-- Admin can hide or restore restaurants through `isActive`.
-- Admin can lock/unlock users and change user roles, except locking the current admin account.
-- Admin can publish, hide or flag reviews.
-- Review moderation writes `ModerationAction` audit records.
-
-## Release Readiness
-
-Implemented reliability and demo assets:
-
-- App-level loading UI.
-- App-level runtime error retry UI.
-- App-level 404 page.
-- Health check validates database connectivity at `/api/health`.
-- Production environment template: `.env.production.example`.
-- Deployment checklist: `docs/deployment-checklist.md`.
-- Presentation demo script: `docs/demo-script.md`.
-- Final QA checklist: `docs/final-qa-checklist.md`.
-- Vercel build config: `vercel.json`.
-- Node version hint: `.nvmrc`.
+- User-uploaded restaurant and avatar images are currently stored as compressed data URLs for the MVP. A production-scale version should move uploaded media to object storage.
+- The app does not require a Gemini/OpenAI/LLM key. The tour generator is rule-based.
+- The legacy `Soundscape` database model may still exist from the initial schema, but the current user-facing audio system is the shared background music player.
