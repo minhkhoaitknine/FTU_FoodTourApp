@@ -133,6 +133,7 @@ export async function listUserFoodTours(userId: string) {
       totalCost: true,
       totalDistanceKm: true,
       totalTravelMinutes: true,
+      transportMode: true,
       city: {
         select: {
           id: true,
@@ -146,7 +147,6 @@ export async function listUserFoodTours(userId: string) {
       },
       stops: {
         orderBy: { stopOrder: "asc" },
-        take: 3,
         select: {
           id: true,
           restaurant: {
@@ -154,7 +154,9 @@ export async function listUserFoodTours(userId: string) {
               name: true,
               slug: true
             }
-          }
+          },
+          distanceFromPreviousKm: true,
+          estimatedTravelMinutes: true
         }
       },
       _count: {
@@ -310,8 +312,10 @@ export async function updateUserFoodTourPlan(
     if (!restaurant) throw new Error("Invalid tour restaurant.");
 
     const distanceFromPreviousKm = haversineDistanceKm(current, restaurant);
-    const estimatedTravelMinutes =
-      index === 0 ? 0 : estimateTravelMinutes(distanceFromPreviousKm, routingTransportMode(existing.transportMode));
+    const estimatedTravelMinutes = estimateTravelMinutes(
+      distanceFromPreviousKm,
+      routingTransportMode(existing.transportMode)
+    );
     current = restaurant;
     totalCost += stop.estimatedCost;
     totalDistanceKm += distanceFromPreviousKm;

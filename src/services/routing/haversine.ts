@@ -25,7 +25,7 @@ export function haversineDistanceKm(from: Coordinate, to: Coordinate) {
 
 export function estimateTravelMinutes(distanceKm: number, mode: "WALKING" | "BICYCLE" | "MOTORBIKE" | "CAR") {
   const speedByMode = {
-    WALKING: 4.5,
+    WALKING: 7,
     BICYCLE: 12,
     MOTORBIKE: 24,
     CAR: 20
@@ -33,4 +33,3 @@ export function estimateTravelMinutes(distanceKm: number, mode: "WALKING" | "BIC
 
   return Math.max(1, Math.round((distanceKm / speedByMode[mode]) * 60));
 }
-

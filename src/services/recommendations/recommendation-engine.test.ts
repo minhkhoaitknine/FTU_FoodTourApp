@@ -83,5 +83,28 @@ describe("generateRecommendation", () => {
     expect(result.stops.length).toBe(0);
     expect(result.warnings.length).toBeGreaterThan(0);
   });
-});
 
+  it("includes travel time from the start point to the first stop", () => {
+    const result = generateRecommendation(
+      {
+        ...input,
+        desiredStops: 1,
+        mealTypes: [MealType.BREAKFAST],
+        transportMode: "WALKING"
+      },
+      [
+        candidate({
+          id: "far-first-stop",
+          slug: "far-first-stop",
+          latitude: 16.492,
+          longitude: 107.5909
+        })
+      ]
+    );
+
+    expect(result.stops[0].distanceFromPreviousKm).toBeGreaterThan(3);
+    expect(result.stops[0].estimatedTravelMinutes).toBeGreaterThanOrEqual(20);
+    expect(result.stops[0].estimatedTravelMinutes).toBeLessThanOrEqual(30);
+    expect(result.summary.totalTravelMinutes).toBe(result.stops[0].estimatedTravelMinutes);
+  });
+});

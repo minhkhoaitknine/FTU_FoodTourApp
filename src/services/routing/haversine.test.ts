@@ -19,5 +19,8 @@ describe("haversineDistanceKm", () => {
   it("estimates travel time by transport mode", () => {
     expect(estimateTravelMinutes(2, "WALKING")).toBeGreaterThan(estimateTravelMinutes(2, "MOTORBIKE"));
   });
-});
 
+  it("uses a brisk walking estimate for demo travelers", () => {
+    expect(estimateTravelMinutes(3.15, "WALKING")).toBe(27);
+  });
+});

@@ -93,7 +93,7 @@ export function generateRecommendation(input: RecommendationInput, candidates: R
 
   const stops = ordered.map((item, index) => {
     const distanceFromPreviousKm = haversineDistanceKm(current, item.candidate);
-    const estimatedTravelMinutes = index === 0 ? 0 : estimateTravelMinutes(distanceFromPreviousKm, input.transportMode);
+    const estimatedTravelMinutes = estimateTravelMinutes(distanceFromPreviousKm, input.transportMode);
     totalDistanceKm += distanceFromPreviousKm;
     totalTravelMinutes += estimatedTravelMinutes;
     current = item.candidate;
@@ -126,4 +126,3 @@ export function generateRecommendation(input: RecommendationInput, candidates: R
     warnings: stops.length < input.desiredStops ? ["Not enough eligible restaurants matched all constraints."] : []
   };
 }
-

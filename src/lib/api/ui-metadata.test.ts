@@ -58,4 +58,22 @@ describe("ui metadata mappers", () => {
       image: { kind: "restaurant" }
     });
   });
+
+  it("normalizes stale tour travel totals from saved leg distances", () => {
+    const tour = withFoodTourUiMetadata({
+      id: "tour-with-stale-time",
+      totalDistanceKm: 3.15,
+      totalTravelMinutes: 1,
+      transportMode: "WALKING",
+      stops: [
+        {
+          distanceFromPreviousKm: 3.15,
+          estimatedTravelMinutes: 0
+        }
+      ]
+    });
+
+    expect(tour.totalTravelMinutes).toBe(27);
+    expect(tour.summary.totalTravelMinutes).toBe(tour.totalTravelMinutes);
+  });
 });
