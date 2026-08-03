@@ -114,7 +114,7 @@ export default async function DashboardPage() {
                 <UserAvatar name={user.fullName} size="lg" src={user.avatarUrl} />
               </Link>
               <div className="min-w-0">
-                <p className="text-sm font-semibold uppercase text-brand-strong">FoodTour dashboard</p>
+                <p className="text-sm font-semibold uppercase text-brand-strong">Tastetrail dashboard</p>
                 <h1 className="mt-2 truncate text-page-title text-content">
                   {user.fullName}
                 </h1>

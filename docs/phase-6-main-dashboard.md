@@ -1,7 +1,7 @@
 # Phase 6 - Main Dashboard
 
 Phase 6 replaces the simple protected-route link grid with a data-driven
-FoodTour dashboard. It keeps existing backend routes, Prisma schema and API
+Tastetrail dashboard. It keeps existing backend routes, Prisma schema and API
 contracts unchanged.
 
 ## Classification

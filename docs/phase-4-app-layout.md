@@ -1,6 +1,6 @@
 # Phase 4 - App Layout
 
-Phase 4 introduces a shared application shell for the main FoodTour experience.
+Phase 4 introduces a shared application shell for the main Tastetrail experience.
 It does not change backend logic, API contracts or the database.
 
 ## Classification

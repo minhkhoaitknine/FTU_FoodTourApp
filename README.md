@@ -1,6 +1,6 @@
-# FoodTour App
+# Tastetrail
 
-FoodTour is a full-stack web application for planning Vietnamese food tours across major travel cities. It combines a restaurant explorer, map-based discovery, rule-based itinerary generation, saved tours, reviews, favorites, profile management, admin operations and a shared background music player.
+Tastetrail is a full-stack web application for planning Vietnamese food tours across major travel cities. It combines a restaurant explorer, map-based discovery, rule-based itinerary generation, saved tours, reviews, favorites, profile management, admin operations and a shared background music player.
 
 The current version is prepared for public Vercel deployment with PostgreSQL/Neon and seeded demo data.
 
@@ -120,7 +120,7 @@ The current version is prepared for public Vercel deployment with PostgreSQL/Neo
 
 ## Recommendation Engine
 
-FoodTour currently uses a deterministic rule-based recommendation engine, not an external LLM API.
+Tastetrail currently uses a deterministic rule-based recommendation engine, not an external LLM API.
 
 The engine evaluates:
 
@@ -319,7 +319,7 @@ Redeploy through GitHub/Vercel:
 ```powershell
 git status
 git add .
-git commit -m "feat: polish FoodTour release"
+git commit -m "feat: polish Tastetrail release"
 git push origin main
 ```
 

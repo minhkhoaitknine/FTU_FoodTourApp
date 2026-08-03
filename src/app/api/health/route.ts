@@ -9,7 +9,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      service: "food-tour-generator",
+      service: "tastetrail",
       phase: "release-readiness",
       database: "reachable",
       uptimeMs: Date.now() - startedAt,
@@ -20,7 +20,7 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
-        service: "food-tour-generator",
+        service: "tastetrail",
         phase: "release-readiness",
         database: "unreachable",
         uptimeMs: Date.now() - startedAt,

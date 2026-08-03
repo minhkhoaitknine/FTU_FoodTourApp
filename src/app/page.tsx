@@ -19,7 +19,7 @@ export default async function HomePage() {
         <header className="rounded-[28px] bg-surface-elevated/[0.65] p-6 shadow-panel backdrop-blur md:p-8">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <p className="text-sm font-semibold uppercase text-brand-strong">FoodTour</p>
+              <p className="text-sm font-semibold uppercase text-brand-strong">Tastetrail</p>
               <h1 className="mt-3 max-w-3xl text-display text-content">
                 Plan local food routes across Vietnam travel cities
               </h1>

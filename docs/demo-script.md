@@ -4,7 +4,7 @@ Use this flow for a 5 to 8 minute project presentation.
 
 ## 1. Opening
 
-FoodTour Generator helps travelers plan local Vietnamese food routes across major tourist cities. The demo uses fictitious data for Ha Noi, Ho Chi Minh City, Da Nang, Hoi An, Hue, Nha Trang, Da Lat, Can Tho, Phu Quoc and Sa Pa.
+Tastetrail helps travelers plan local Vietnamese food routes across major tourist cities. The demo uses fictitious data for Ha Noi, Ho Chi Minh City, Da Nang, Hoi An, Hue, Nha Trang, Da Lat, Can Tho, Phu Quoc and Sa Pa.
 
 ## 2. Public Browsing
 

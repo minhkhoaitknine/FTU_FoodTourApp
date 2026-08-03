@@ -50,9 +50,9 @@ export function DesktopSidebar({
     <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 border-r border-white/55 bg-surface-elevated/[0.65] px-4 py-5 shadow-panel backdrop-blur-xl lg:flex lg:flex-col">
       <Link className="flex items-center gap-3 rounded-app px-2 py-2" href={homeHref}>
         <BrandLogo className="size-12" priority />
-        <span>
-          <span className="block text-xl font-bold text-content">FoodTour</span>
-          <span className="block text-xs text-content-muted">Eat local, feel the street</span>
+          <span>
+          <span className="block text-xl font-bold text-content">Tastetrail</span>
+          <span className="block text-xs text-content-muted">Plan less, taste more</span>
         </span>
       </Link>
 

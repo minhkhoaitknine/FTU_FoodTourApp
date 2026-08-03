@@ -29,7 +29,7 @@ const RESTAURANT_FOCUS_ZOOM = 14;
 
 const markerIcon = L.divIcon({
   className: "",
-  html: '<div class="foodtour-marker">FT</div>',
+  html: '<div class="foodtour-marker">TT</div>',
   iconSize: [34, 34],
   iconAnchor: [17, 30],
   popupAnchor: [0, -26]
@@ -37,7 +37,7 @@ const markerIcon = L.divIcon({
 
 const selectedMarkerIcon = L.divIcon({
   className: "",
-  html: '<div class="foodtour-marker foodtour-marker-selected">FT</div>',
+  html: '<div class="foodtour-marker foodtour-marker-selected">TT</div>',
   iconSize: [40, 40],
   iconAnchor: [20, 34],
   popupAnchor: [0, -30]

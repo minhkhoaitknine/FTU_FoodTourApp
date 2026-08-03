@@ -14,7 +14,7 @@ export default async function TourGeneratorPage() {
         <header className="flex flex-col gap-3 rounded-[28px] bg-white/85 p-5 shadow-panel md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase text-brand-strong">Tour generator</p>
-            <h1 className="mt-2 text-3xl font-bold md:text-4xl">Food Tour Generator</h1>
+            <h1 className="mt-2 text-3xl font-bold md:text-4xl">Tastetrail Planner</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
               Choose a city, budget, group size and food preferences to generate a saved route.
             </p>

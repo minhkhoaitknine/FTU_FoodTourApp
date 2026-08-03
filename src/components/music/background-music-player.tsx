@@ -237,7 +237,7 @@ export function BackgroundMusicPlayer() {
             ) : (
               <Music2 aria-hidden="true" className="shrink-0 text-brand-strong" size={14} />
             )}
-            <p className="truncate text-sm font-bold">{currentTrack?.title ?? "FoodTour music"}</p>
+            <p className="truncate text-sm font-bold">{currentTrack?.title ?? "Tastetrail music"}</p>
           </div>
           <p className="mt-0.5 text-xs font-semibold text-content-muted">{statusLabel}</p>
         </div>

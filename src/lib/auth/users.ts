@@ -20,10 +20,17 @@ export function toSafeUser(user: {
   return {
     id: user.id,
     email: user.email,
-    fullName: user.fullName,
+    fullName: normalizeLegacyBrandName(user.fullName),
     avatarUrl: user.avatarUrl,
     role: user.role
   } satisfies SafeUser;
+}
+
+function normalizeLegacyBrandName(name: string) {
+  if (name === "FoodTour Admin") return "Tastetrail Admin";
+  if (name === "FoodTour Moderator") return "Tastetrail Moderator";
+  if (name === "FoodTour User") return "Tastetrail User";
+  return name;
 }
 
 export async function getCurrentUser() {

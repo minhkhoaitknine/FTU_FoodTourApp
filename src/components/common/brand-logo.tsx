@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
-export const FOODTOUR_LOGO_SRC = "/images/brand/foodtour-logo.png";
+export const TASTETRAIL_LOGO_SRC = "/images/brand/tastetrail-logo.png";
 
 export function BrandLogo({
   className,
@@ -25,7 +25,7 @@ export function BrandLogo({
         fill
         priority={priority}
         sizes="64px"
-        src={FOODTOUR_LOGO_SRC}
+        src={TASTETRAIL_LOGO_SRC}
       />
     </span>
   );

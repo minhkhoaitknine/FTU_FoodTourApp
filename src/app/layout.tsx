@@ -20,14 +20,14 @@ function getMetadataBase() {
 
 export const metadata: Metadata = {
   title: {
-    default: "FoodTour Generator",
-    template: "%s | FoodTour Generator"
+    default: "Tastetrail",
+    template: "%s | Tastetrail"
   },
   description: "Plan local Vietnamese food tours with budget, timing and map-aware recommendations.",
-  applicationName: "FoodTour Generator",
+  applicationName: "Tastetrail",
   icons: {
-    icon: "/images/brand/foodtour-logo.png",
-    apple: "/images/brand/foodtour-logo.png"
+    icon: "/images/brand/tastetrail-logo.png",
+    apple: "/images/brand/tastetrail-logo.png"
   },
   keywords: ["Vietnam food tour", "travel food planner", "Next.js", "Prisma"],
   metadataBase: getMetadataBase()

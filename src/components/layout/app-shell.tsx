@@ -112,12 +112,12 @@ function TopBar({
     <header className="sticky top-0 z-sticky border-b border-white/50 bg-canvas/82 px-4 py-3 backdrop-blur-xl md:px-6 lg:hidden">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
         <Link
-          aria-label="FoodTour"
+          aria-label="Tastetrail"
           className="flex min-w-0 items-center gap-2 rounded-app px-1 py-1 lg:hidden"
           href={homeHref}
         >
           <BrandLogo className="size-10" priority />
-          <span className="truncate font-bold">FoodTour</span>
+          <span className="truncate font-bold">Tastetrail</span>
         </Link>
 
         <div className="ml-auto flex min-w-0 items-center gap-2">

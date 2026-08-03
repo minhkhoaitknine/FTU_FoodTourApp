@@ -1,4 +1,4 @@
-# FoodTour Design System
+# Tastetrail Design System
 
 This document is the source of truth for the visual primitives introduced in
 Phase 1. It keeps the current Tailwind stack and adds no runtime dependency.

@@ -11,7 +11,7 @@ export default function RegisterPage() {
       <section className="relative z-10 w-full max-w-md rounded-[28px] bg-surface-elevated/[0.65] p-6 shadow-panel backdrop-blur">
         <div className="flex items-center gap-3">
           <BrandLogo className="size-12" priority />
-          <p className="text-sm font-semibold uppercase text-brand-strong">FoodTour</p>
+          <p className="text-sm font-semibold uppercase text-brand-strong">Tastetrail</p>
         </div>
         <h1 className="mt-2 text-page-title">Create account</h1>
         <p className="mt-2 text-sm leading-6 text-content-muted">

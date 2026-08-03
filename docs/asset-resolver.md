@@ -1,4 +1,4 @@
-# FoodTour Asset Resolver
+# Tastetrail Asset Resolver
 
 Phase 2 makes the provided demo images available to the browser and centralizes
 image fallback rules. It does not change the database schema or API contracts.

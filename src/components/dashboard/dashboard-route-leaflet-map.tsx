@@ -14,7 +14,7 @@ type LatLng = [number, number];
 
 const routeIcon = L.divIcon({
   className: "",
-  html: '<div class="foodtour-marker">FT</div>',
+  html: '<div class="foodtour-marker">TT</div>',
   iconSize: [34, 34],
   iconAnchor: [17, 30],
   popupAnchor: [0, -26]

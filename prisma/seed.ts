@@ -249,17 +249,17 @@ async function seedUsers(passwordHash: string) {
   const demoUsers = [
     {
       email: "admin@foodtour.demo",
-      fullName: "FoodTour Admin",
+      fullName: "Tastetrail Admin",
       role: UserRole.ADMIN
     },
     {
       email: "moderator@foodtour.demo",
-      fullName: "FoodTour Moderator",
+      fullName: "Tastetrail Moderator",
       role: UserRole.MODERATOR
     },
     {
       email: "user@foodtour.demo",
-      fullName: "FoodTour User",
+      fullName: "Tastetrail User",
       role: UserRole.USER
     }
   ];
@@ -334,7 +334,7 @@ async function seedRestaurants(createdCities: Awaited<ReturnType<typeof seedCiti
           cityId: city.id,
           name,
           slug: `${slugify(city.name)}-${slugify(concept.suffix)}`,
-          description: `Fictitious demo venue for ${city.name}, created for FoodTour Generator presentations.`,
+          description: `Fictitious demo venue for ${city.name}, created for Tastetrail presentations.`,
           culturalStory: `Demo cultural note about how travelers can explore ${city.name} through local food.`,
           eatingTips: "Order a signature dish, check the opening time, and plan travel time between stops.",
           address: `${rng.int(1, 220)} Demo Food Street, ${city.name}`,
